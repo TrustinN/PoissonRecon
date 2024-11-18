@@ -21,7 +21,7 @@ Node *Octree::build(std::vector<std::array<double, 3>> points,
                     std::array<double, 3> center, double width, int depth,
                     int max_depth) {
 
-  bool is_leaf = depth == max_depth || points.size() == 0;
+  bool is_leaf = depth == max_depth || points.size() <= 1;
   Node *ret_node = new Node(points, center, width, is_leaf, depth);
 
   if (!is_leaf) {
@@ -31,7 +31,7 @@ Node *Octree::build(std::vector<std::array<double, 3>> points,
     for (const auto &p : points) {
 
       std::array<double, 3> diff;
-      std::transform(center.begin(), center.end(), p.begin(), diff.begin(),
+      std::transform(p.begin(), p.end(), center.begin(), diff.begin(),
                      std::minus<double>());
       std::transform(diff.begin(), diff.end(), diff.begin(),
                      [](double &d) { return (d > 0) ? 1 : 0; });
@@ -41,15 +41,16 @@ Node *Octree::build(std::vector<std::array<double, 3>> points,
     };
 
     // Make pointers to subdivision nodes
-    std::array<Node *, 8> n_child = ret_node->info.children;
+    std::array<Node *, 8> &n_child = ret_node->info.children;
     double n_width = width / 2.0;
+    double c_off = n_width / 2.0;
 
     for (int i = 0; i < 8; i++) {
 
       std::array<double, 3> n_center = center;
-      n_center[0] += (i % 2 == 0) ? -n_width : n_width;
-      n_center[1] += ((i >> 1) % 2 == 0) ? -n_width : n_width;
-      n_center[2] += ((i >> 2) % 2 == 0) ? -n_width : n_width;
+      n_center[0] += (i % 2 == 0) ? -c_off : c_off;
+      n_center[1] += ((i >> 1) % 2 == 0) ? -c_off : c_off;
+      n_center[2] += ((i >> 2) % 2 == 0) ? -c_off : c_off;
 
       n_child[i] = build(sub_d[i], n_center, n_width, depth + 1, max_depth);
     };

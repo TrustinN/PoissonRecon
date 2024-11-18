@@ -13,13 +13,14 @@ std::ostream &operator<<(std::ostream &ofs, const std::array<Node *, 8> &a) {
   if (a[0] == nullptr) {
     ofs << "null";
   } else {
+    ofs << std::endl;
     ofs << *a[0];
   }
   for (int i = 1; i < 8; i++) {
     if (a[i] == nullptr) {
       ofs << ", null";
     } else {
-      ofs << ", " << *a[i];
+      ofs << std::endl << *a[i];
     }
   };
   ofs << "]";
@@ -59,7 +60,7 @@ std::ostream &operator<<(std::ostream &ofs, const Node &n) {
   if (n.is_leaf) {
     ofs << n.info.points << std::endl;
   } else {
-    ofs << "children: " << n.info.children << std::endl;
+    ofs << "children:" << n.info.children << std::endl;
   }
   for (int i = 0; i < n.depth; i++) {
     ofs << indent;
