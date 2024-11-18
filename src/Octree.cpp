@@ -7,8 +7,8 @@
 // -------------------------------------------------------------------------------------------------//
 
 Node::Node(std::vector<std::array<double, 3>> points,
-           std::array<double, 3> center, double width, bool is_leaf)
-    : center(center), width(width) {
+           std::array<double, 3> center, double width, bool is_leaf, int depth)
+    : center(center), width(width), depth(depth), is_leaf(is_leaf) {
   // info is union type, choose if we want to store points or children
   if (is_leaf) {
     new (&info.points) std::vector<std::array<double, 3>>(points);
@@ -18,10 +18,11 @@ Node::Node(std::vector<std::array<double, 3>> points,
 };
 
 Node *Octree::build(std::vector<std::array<double, 3>> points,
-                    std::array<double, 3> center, double width, int depth) {
+                    std::array<double, 3> center, double width, int depth,
+                    int max_depth) {
 
-  bool is_leaf = depth == 0 || points.size() == 0;
-  Node *ret_node = new Node(points, center, width, is_leaf);
+  bool is_leaf = depth == max_depth || points.size() == 0;
+  Node *ret_node = new Node(points, center, width, is_leaf, depth);
 
   if (!is_leaf) {
 
@@ -50,9 +51,10 @@ Node *Octree::build(std::vector<std::array<double, 3>> points,
       n_center[1] += ((i >> 1) % 2 == 0) ? -n_width : n_width;
       n_center[2] += ((i >> 2) % 2 == 0) ? -n_width : n_width;
 
-      n_child[i] = build(sub_d[i], n_center, n_width, depth - 1);
+      n_child[i] = build(sub_d[i], n_center, n_width, depth + 1, max_depth);
     };
   };
+
   return ret_node;
 };
 
@@ -79,7 +81,7 @@ Octree::Octree(std::vector<std::array<double, 3>> points, int max_depth) {
                                     (maxes[2] + mins[2]) / 2.0};
     double width = std::max(maxes[0] - mins[0],
                             std::max(maxes[1] - mins[1], maxes[2] - mins[2]));
-    this->_root = Octree::build(points, center, width, max_depth);
+    this->_root = Octree::build(points, center, width, 1, max_depth);
 
   } else {
     this->_root = nullptr;

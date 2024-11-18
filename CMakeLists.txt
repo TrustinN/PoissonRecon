@@ -10,4 +10,5 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
+add_executable(main src/main.cpp src/Octree.cpp src/utils.cpp src/io.cpp)
 add_subdirectory(tests)
