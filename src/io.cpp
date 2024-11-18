@@ -9,9 +9,8 @@ std::ostream &operator<<(std::ostream &ofs, const std::array<double, 3> &a) {
 };
 
 std::ostream &operator<<(std::ostream &ofs, const std::array<Node *, 8> &a) {
-  ofs << "[";
   if (a[0] == nullptr) {
-    ofs << "null";
+    ofs << "[null";
   } else {
     ofs << std::endl;
     ofs << *a[0];
@@ -23,7 +22,9 @@ std::ostream &operator<<(std::ostream &ofs, const std::array<Node *, 8> &a) {
       ofs << std::endl << *a[i];
     }
   };
-  ofs << "]";
+  if (a[0] == nullptr) {
+    ofs << "]";
+  }
   return ofs;
 };
 
@@ -41,31 +42,16 @@ std::ostream &operator<<(std::ostream &ofs, const std::vector<T> &v) {
 }
 
 std::ostream &operator<<(std::ostream &ofs, const Node &n) {
-  std::string indent = "  ";
-  for (int i = 0; i < n.depth; i++) {
-    ofs << indent;
-  }
-  ofs << "Node: [" << std::endl;
-  for (int i = 0; i < n.depth + 1; i++) {
-    ofs << indent;
-  }
-  ofs << "center: " << n.center << "," << std::endl;
-  for (int i = 0; i < n.depth + 1; i++) {
-    ofs << indent;
-  }
-  ofs << "width: " << n.width << "," << std::endl;
-  for (int i = 0; i < n.depth + 1; i++) {
-    ofs << indent;
-  }
+  std::string indent(2 * n.depth, ' ');
+  ofs << indent << "Node {" << std::endl;
+  ofs << indent << "  " << "center: " << n.center << "," << std::endl;
+  ofs << indent << "  " << "width: " << n.width << "," << std::endl;
   if (n.is_leaf) {
-    ofs << n.info.points << std::endl;
+    ofs << indent << "  " << n.info.points << std::endl;
   } else {
-    ofs << "children:" << n.info.children << std::endl;
+    ofs << indent << "  " << "children:" << n.info.children << std::endl;
   }
-  for (int i = 0; i < n.depth; i++) {
-    ofs << indent;
-  }
-  ofs << "]";
+  ofs << indent << "}";
   return ofs;
 };
 
