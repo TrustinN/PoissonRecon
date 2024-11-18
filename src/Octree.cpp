@@ -19,12 +19,11 @@ Node::Node(std::vector<std::array<double, 3>> points,
 
 Node *Octree::build(std::vector<std::array<double, 3>> points,
                     std::array<double, 3> center, double width, int depth) {
-  Node *ret_node = new Node(points, center, width, depth == 0);
-  if (points.size() == 0) {
-    return ret_node;
-  };
 
-  if (depth > 0) {
+  bool is_leaf = depth == 0 || points.size() == 0;
+  Node *ret_node = new Node(points, center, width, is_leaf);
+
+  if (!is_leaf) {
 
     // Figure out which points go in which subdivision
     std::vector<std::vector<std::array<double, 3>>> sub_d(8);
@@ -59,25 +58,30 @@ Node *Octree::build(std::vector<std::array<double, 3>> points,
 
 Octree::Octree(std::vector<std::array<double, 3>> points, int max_depth) {
   this->_size = points.size();
-  // compute center and width of containing tree
 
-  std::array<double, 3> mins{std::numeric_limits<double>::infinity()};
-  std::array<double, 3> maxes{-std::numeric_limits<double>::infinity()};
+  if (points.size() > 0) {
 
-  for (const auto &p : points) {
-    std::transform(
-        mins.begin(), mins.end(), p.begin(), mins.begin(),
-        [](const double &a, const double &b) { return std::min(a, b); });
-    std::transform(
-        maxes.begin(), maxes.end(), p.begin(), maxes.begin(),
-        [](const double &a, const double &b) { return std::max(a, b); });
+    // compute center and width of containing tree
+    std::array<double, 3> mins{std::numeric_limits<double>::infinity()};
+    std::array<double, 3> maxes{-std::numeric_limits<double>::infinity()};
+
+    for (const auto &p : points) {
+      std::transform(
+          mins.begin(), mins.end(), p.begin(), mins.begin(),
+          [](const double &a, const double &b) { return std::min(a, b); });
+      std::transform(
+          maxes.begin(), maxes.end(), p.begin(), maxes.begin(),
+          [](const double &a, const double &b) { return std::max(a, b); });
+    };
+
+    std::array<double, 3> center = {(maxes[0] + mins[0]) / 2.0,
+                                    (maxes[1] + mins[1]) / 2.0,
+                                    (maxes[2] + mins[2]) / 2.0};
+    double width = std::max(maxes[0] - mins[0],
+                            std::max(maxes[1] - mins[1], maxes[2] - mins[2]));
+    this->_root = Octree::build(points, center, width, max_depth);
+
+  } else {
+    this->_root = nullptr;
   };
-
-  std::array<double, 3> center = {(maxes[0] + mins[0]) / 2.0,
-                                  (maxes[1] + mins[1]) / 2.0,
-                                  (maxes[2] + mins[2]) / 2.0};
-  double width = std::max(maxes[0] - mins[0],
-                          std::max(maxes[1] - mins[1], maxes[2] - mins[2]));
-
-  this->_root = Octree::build(points, center, width, max_depth);
 };
