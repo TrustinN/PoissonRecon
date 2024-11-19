@@ -10,12 +10,21 @@
 
 Node::Node(std::vector<id_point> points, std::array<double, 3> center,
            double width, bool is_leaf, int depth)
-    : center(center), width(width), depth(depth), is_leaf(is_leaf) {
+    : center(center), width(width), depth(depth), is_leaf(is_leaf),
+      num_points(points.size()) {
   // info is union type, choose if we want to store points or children
   if (is_leaf) {
     new (&info.points) std::vector<id_point>(points);
   } else {
     new (&info.children) std::array<Node *, 8>{nullptr};
+  }
+};
+
+Node::~Node() {
+  if (is_leaf) {
+    info.points.~vector();
+  } else {
+    info.children.~array();
   }
 };
 
@@ -168,18 +177,22 @@ std::vector<int> Octree::kNearestNeighbors(const std::array<double, 3> query,
   return ret;
 };
 
-bool Octree::Delete(Node *node, std::array<double, 3> p) {
-  bool is_deleted = false;
+int Octree::Delete(Node *node, std::array<double, 3> p) {
+  int del_id = -1;
   if (node->is_leaf) {
 
     std::vector<id_point> &pts = node->info.points;
 
     for (auto itr = pts.begin(); itr != pts.end(); itr++) {
-      if (p == std::get<1>(*itr)) {
-        is_deleted = true;
+      id_point id_p = *itr;
+      if (p == std::get<1>(id_p)) {
+        del_id = std::get<0>(id_p);
         pts.erase(itr);
-      }
-    }
+        node->num_points -= 1;
+        break;
+      };
+    };
+
   } else {
     // find out which child node the point is in
     std::array<double, 3> &center = node->center;
@@ -191,15 +204,47 @@ bool Octree::Delete(Node *node, std::array<double, 3> p) {
     diff[2] = (diff[2] > 0 ? 4 : 0);
 
     int idx = diff[0] + diff[1] + diff[2];
-    if (node->info.children[idx] != nullptr) {
-      is_deleted = Delete(node->info.children[idx], p);
-      if (is_deleted) {
-        // TODO: check if child node is empty, if so, delete it
-        // check if all child nodes are empty and if so turn this node to leaf
-        // node
+    Node *next_node = node->info.children[idx];
+    if (next_node != nullptr) {
+      del_id = Delete(next_node, p);
+
+      if (del_id != -1) {
+        // Check if child node is empty, if so, delete it
+        node->num_points -= 1;
+        if (next_node->is_leaf) {
+          if (next_node->num_points == 0) {
+            // destroy node
+            delete next_node;
+            node->info.children[idx] = nullptr;
+          }
+        };
+
+        // now check if there is only one point left. If so, we can turn this
+        // node to a leaf node
+        if (node->num_points == 1) {
+          node->is_leaf = true;
+          id_point l_pt;
+          for (int i = 0; i < 8; i++) {
+            if (node->info.children[i] != nullptr) {
+              l_pt = node->info.children[i]->info.points[0];
+            }
+          }
+
+          // change union data type
+          node->info.children.~array();
+          new (&node->info.points) std::vector<id_point>{l_pt};
+        }
       };
-    } // if node is nullptr, there is nothing to delete
+    }; // if node is nullptr, there is nothing to delete
   };
 
-  return is_deleted;
+  return del_id;
+};
+
+void Octree::Delete(std::array<double, 3> p) {
+  int del_id = Delete(_root, p);
+  if (del_id != -1) {
+    _size -= 1;
+    unused_ids.push_back(del_id);
+  };
 };

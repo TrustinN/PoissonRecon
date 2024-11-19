@@ -26,11 +26,13 @@ struct Node {
   //    0          1
   Node(std::vector<id_point> points, std::array<double, 3> center, double width,
        bool is_leaf, int depth);
+  ~Node();
 
   double width;
   std::array<double, 3> center;
   bool is_leaf;
   int depth;
+  int num_points;
   NodeInfo info;
 };
 
@@ -41,20 +43,26 @@ public:
 
   std::vector<int> kNearestNeighbors(const std::array<double, 3> query,
                                      int k = 1) const;
+  void Delete(std::array<double, 3> p);
 
-  bool Delete(Node *node, std::array<double, 3> p);
-
-  int size() const { return _size; }
-  Node *root() const { return _root; }
-  std::vector<std::array<double, 3>> points() const { return _points; }
+  int size() const { return _size; };
+  Node *root() const { return _root; };
+  std::vector<std::array<double, 3>> points() const { return _points; };
+  std::vector<int> unused() const { return unused_ids; };
 
 private:
   int _size;
   Node *_root;
   std::vector<std::array<double, 3>> _points;
+  std::vector<int>
+      unused_ids; // When we delete, deleted point's ids will go here. This way,
+                  // we don't need to resize our _points, when we insert a new
+                  // point, we can just replace the value in that position
 
   Node *build(std::vector<id_point> points, std::array<double, 3> center,
               double width, int depth, int max_depth);
+
+  int Delete(Node *node, std::array<double, 3> p);
 };
 
 #endif

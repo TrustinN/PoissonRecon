@@ -100,4 +100,43 @@ TEST(OctreekNN, Random) {
                         pow(query[1] - tree->points()[n_id][1], 2) +
                         pow(query[2] - tree->points()[n_id][2], 2);
   EXPECT_LE(nearest_dist, answer_dist);
-}
+};
+
+TEST(OctreeDelete, NoDelete) {
+  //           .----.----. (1,1,1)
+  //          /|   /|   / |
+  // (0,1,0) .----.----.__.
+  //         |/|  | |  | /|
+  //         .----.----. -.
+  //         |/   |/   | /
+  //         .----.----.
+  //        0           (1,0,0)
+
+  std::vector<std::array<double, 3>> points = {
+      {0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {1, 1, 1}};
+  Octree tree(points);
+  tree.Delete({1, 2, 3});
+
+  ASSERT_EQ(tree.size(), 4);
+  ASSERT_EQ(tree.unused().size(), 0);
+};
+
+TEST(OctreeDelete, Basic) {
+
+  //           .----.----. (1,1,1)
+  //          /|   /|   / |
+  // (0,1,0) .----.----.__.
+  //         |/|  | |  | /|
+  //         .----.----. -.
+  //         |/   |/   | /
+  //         .----.----.
+  //        0           (1,0,0)
+
+  std::vector<std::array<double, 3>> points = {
+      {0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {1, 1, 1}};
+  Octree tree(points);
+  tree.Delete({0, 0, 0});
+  ASSERT_EQ(tree.size(), 3);
+  ASSERT_EQ(tree.unused()[0], 0);
+  ASSERT_EQ(tree.unused().size(), 1);
+};
