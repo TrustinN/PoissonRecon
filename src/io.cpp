@@ -8,6 +8,10 @@ std::ostream &operator<<(std::ostream &ofs, const std::array<double, 3> &a) {
   return ofs;
 };
 
+std::ostream &operator<<(std::ostream &ofs, const id_point &a) {
+  return ofs << std::get<1>(a);
+};
+
 std::ostream &operator<<(std::ostream &ofs, const std::array<Node *, 8> &a) {
   if (a[0] == nullptr) {
     ofs << "[null";
@@ -42,9 +46,9 @@ std::ostream &operator<<(std::ostream &ofs, const Node &n) {
   return ofs;
 };
 
-// std::ostream &operator<<(std::ostream &ofs, const Octree &o) {
-//   ofs << "Octree: [" << std::endl;
-//   ofs << *o.root() << std::endl;
-//   ofs << "]";
-//   return ofs;
-// }
+std::ostream &operator<<(std::ostream &ofs, const Octree &o) {
+  ofs << "Octree: [" << std::endl;
+  ofs << *o.root() << std::endl;
+  ofs << "]";
+  return ofs;
+}

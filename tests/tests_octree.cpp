@@ -1,5 +1,5 @@
 #include "../src/Octree.hpp"
-// #include "../src/utils.hpp"
+#include "../src/utils.hpp"
 #include <array>
 #include <gtest/gtest.h>
 #include <random>
@@ -7,17 +7,6 @@
 
 std::random_device rd;
 std::mt19937 gen(rd());
-
-Octree *rand_tree(std::mt19937 &gen, int num_points, int max_depth) {
-  std::uniform_int_distribution<> dis(0, 100);
-
-  std::vector<std::array<double, 3>> points(num_points);
-  for (int i = 0; i < num_points; i++) {
-    std::generate(points[i].begin(), points[i].end(),
-                  [&]() { return dis(gen); });
-  }
-  return new Octree(points, max_depth);
-};
 
 TEST(OctreeConstruct, Empty) {
   Octree *tree = new Octree(std::vector<std::array<double, 3>>(), 3);
@@ -64,14 +53,16 @@ TEST(OctreekNN, Basic) {
   std::vector<std::array<double, 3>> points = {
       {0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {1, 1, 1}};
   Octree tree(points);
-  std::vector<std::array<double, 3>> nn = tree.kNearestNeighbors({0.2, 0, 0});
+  std::vector<int> nn = tree.kNearestNeighbors({0.2, 0, 0});
+  int nn_id = nn[0];
 
   ASSERT_EQ(nn.size(), 1);
-  ASSERT_EQ(nn[0], points[0]);
+  ASSERT_EQ(nn_id, 0);
 
   nn = tree.kNearestNeighbors({0.7, 0.7, 0.7});
+  nn_id = nn[0];
   ASSERT_EQ(nn.size(), 1);
-  ASSERT_EQ(nn[0], points[3]);
+  ASSERT_EQ(nn_id, 3);
 }
 
 TEST(OctreekNN, Random) {
@@ -81,7 +72,7 @@ TEST(OctreekNN, Random) {
 
   std::array<double, 3> query = {1.0, 2.0, 3.0};
 
-  std::vector<std::array<double, 3>> result = tree->kNearestNeighbors(query);
+  std::vector<int> result = tree->kNearestNeighbors(query);
 
   // brute force find answer
   std::array<double, 3> answer;
@@ -99,14 +90,14 @@ TEST(OctreekNN, Random) {
     }
   }
 
-  std::array<double, 3> nearest = result[0];
+  int n_id = result[0];
 
   double answer_dist = pow(query[0] - answer[0], 2) +
                        pow(query[1] - answer[1], 2) +
                        pow(query[2] - answer[2], 2);
 
-  double nearest_dist = pow(query[0] - nearest[0], 2) +
-                        pow(query[1] - nearest[1], 2) +
-                        pow(query[2] - nearest[2], 2);
+  double nearest_dist = pow(query[0] - tree->points()[n_id][0], 2) +
+                        pow(query[1] - tree->points()[n_id][1], 2) +
+                        pow(query[2] - tree->points()[n_id][2], 2);
   EXPECT_LE(nearest_dist, answer_dist);
 }

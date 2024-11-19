@@ -16,6 +16,6 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 include(GoogleTest)
 
-add_executable(octree tests_octree.cpp ../src/Octree.cpp)
+add_executable(octree tests_octree.cpp ../src/Octree.cpp ../src/utils.cpp)
 target_link_libraries(octree GTest::gtest_main)
 gtest_discover_tests(octree)

@@ -4,10 +4,12 @@
 #include <array>
 #include <vector>
 
+using id_point = std::pair<int, std::array<double, 3>>;
+
 struct Node;
 
 union NodeInfo {
-  std::vector<std::array<double, 3>> points;
+  std::vector<id_point> points;
   std::array<Node *, 8> children;
   NodeInfo() : points() {};
   ~NodeInfo() {};
@@ -22,8 +24,8 @@ struct Node {
   //     |/   |/   | /
   //     .----.----.
   //    0          1
-  Node(std::vector<std::array<double, 3>> points, std::array<double, 3> center,
-       double width, bool is_leaf, int depth);
+  Node(std::vector<id_point> points, std::array<double, 3> center, double width,
+       bool is_leaf, int depth);
 
   double width;
   std::array<double, 3> center;
@@ -37,8 +39,10 @@ public:
   Octree() : _size(0), _root(nullptr) {};
   Octree(std::vector<std::array<double, 3>> points, int max_depth = 8);
 
-  std::vector<std::array<double, 3>>
-  kNearestNeighbors(std::array<double, 3> query, int k = 1);
+  std::vector<int> kNearestNeighbors(const std::array<double, 3> query,
+                                     int k = 1) const;
+
+  bool Delete(Node *node, std::array<double, 3> p);
 
   int size() const { return _size; }
   Node *root() const { return _root; }
@@ -49,9 +53,8 @@ private:
   Node *_root;
   std::vector<std::array<double, 3>> _points;
 
-  Node *build(std::vector<std::array<double, 3>> points,
-              std::array<double, 3> center, double width, int depth,
-              int max_depth);
+  Node *build(std::vector<id_point> points, std::array<double, 3> center,
+              double width, int depth, int max_depth);
 };
 
 #endif
