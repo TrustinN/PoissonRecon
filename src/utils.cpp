@@ -1,10 +1,16 @@
 #include "utils.hpp"
 #include "Octree.hpp"
+#include <algorithm>
 #include <array>
 #include <random>
 
-std::random_device rd;
-std::mt19937 gen(rd());
+// -------------------------------------------------------------------------------------------------//
+// LINEAR ALGEBRA
+// -------------------------------------------------------------------------------------------------//
+
+double dot(std::array<double, 3> a, std::array<double, 3> b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
 
 // helper function computes distance between
 double distance(std::array<double, 3> a, Node *node) {
@@ -27,6 +33,25 @@ double distance(std::array<double, 3> a, std::array<double, 3> b) {
   return std::pow(a[0] - b[0], 2) + std::pow(a[1] - b[1], 2) +
          std::pow(a[2] - b[2], 2);
 };
+
+// -------------------------------------------------------------------------------------------------//
+// GRAPH UTILS
+// -------------------------------------------------------------------------------------------------//
+
+std::vector<std::set<int>> join_graphs(const std::vector<std::set<int>> &g1,
+                                       const std::vector<std::set<int>> &g2) {
+  std::vector<std::set<int>> ret_adj_list(g1.size());
+  std::set_union(g1.begin(), g1.end(), g2.begin(), g2.end(),
+                 ret_adj_list.begin());
+  return ret_adj_list;
+};
+
+// -------------------------------------------------------------------------------------------------//
+// RANDOM NUMBER GENERATION
+// -------------------------------------------------------------------------------------------------//
+
+std::random_device rd;
+std::mt19937 gen(rd());
 
 std::vector<int> rand_ints(int min, int max, int num) {
 
