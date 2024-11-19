@@ -36,12 +36,19 @@ class Octree {
 public:
   Octree() : _size(0), _root(nullptr) {};
   Octree(std::vector<std::array<double, 3>> points, int max_depth = 8);
+
+  std::vector<std::array<double, 3>>
+  kNearestNeighbors(std::array<double, 3> query, int k = 1);
+
   int size() const { return _size; }
   Node *root() const { return _root; }
+  std::vector<std::array<double, 3>> points() const { return _points; }
 
 private:
   int _size;
   Node *_root;
+  std::vector<std::array<double, 3>> _points;
+
   Node *build(std::vector<std::array<double, 3>> points,
               std::array<double, 3> center, double width, int depth,
               int max_depth);
