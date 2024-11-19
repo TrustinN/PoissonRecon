@@ -28,19 +28,6 @@ std::ostream &operator<<(std::ostream &ofs, const std::array<Node *, 8> &a) {
   return ofs;
 };
 
-template <typename T>
-std::ostream &operator<<(std::ostream &ofs, const std::vector<T> &v) {
-  ofs << "<";
-  if (!v.empty()) {
-    ofs << v[0];
-    for (int i = 1; i < v.size(); i++) {
-      ofs << ", " << v[i];
-    };
-  }
-  ofs << ">";
-  return ofs;
-}
-
 std::ostream &operator<<(std::ostream &ofs, const Node &n) {
   std::string indent(2 * n.depth, ' ');
   ofs << indent << "Node {" << std::endl;
@@ -55,9 +42,9 @@ std::ostream &operator<<(std::ostream &ofs, const Node &n) {
   return ofs;
 };
 
-std::ostream &operator<<(std::ostream &ofs, const Octree &o) {
-  ofs << "Octree: [" << std::endl;
-  ofs << *o.root() << std::endl;
-  ofs << "]";
-  return ofs;
-}
+// std::ostream &operator<<(std::ostream &ofs, const Octree &o) {
+//   ofs << "Octree: [" << std::endl;
+//   ofs << *o.root() << std::endl;
+//   ofs << "]";
+//   return ofs;
+// }

@@ -13,6 +13,7 @@ int main() {
 
   std::vector<std::array<double, 3>> nn =
       tree->kNearestNeighbors({1.0, 2.0, 3.0}, 3);
+  std::cout << nn << std::endl;
   std::cout << nn[0] << std::endl;
   std::cout << nn[1] << std::endl;
   std::cout << nn[2] << std::endl;
