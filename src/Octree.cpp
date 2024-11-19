@@ -199,43 +199,37 @@ int Octree::Delete(Node *node, std::array<double, 3> p) {
     std::array<double, 3> diff = {p[0] - center[0], p[1] - center[1],
                                   p[2] - center[2]};
 
-    diff[0] = (diff[0] > 0 ? 1 : 0);
-    diff[1] = (diff[1] > 0 ? 2 : 0);
-    diff[2] = (diff[2] > 0 ? 4 : 0);
+    diff[0] = (diff[0] > 0) ? 1 : 0;
+    diff[1] = (diff[1] > 0) ? 2 : 0;
+    diff[2] = (diff[2] > 0) ? 4 : 0;
 
     int idx = diff[0] + diff[1] + diff[2];
     Node *next_node = node->info.children[idx];
-    if (next_node != nullptr) {
-      del_id = Delete(next_node, p);
+    del_id = Delete(next_node, p);
 
-      if (del_id != -1) {
-        // Check if child node is empty, if so, delete it
-        node->num_points -= 1;
-        if (next_node->is_leaf) {
-          if (next_node->num_points == 0) {
-            // destroy node
-            delete next_node;
-            node->info.children[idx] = nullptr;
+    if (del_id != -1) {
+      node->num_points -= 1;
+
+      // now check if there is only one point left. If so, we can turn this
+      // node to a leaf node
+      if (node->num_points == 1) {
+        node->is_leaf = true;
+        id_point l_pt;
+        for (int i = 0; i < 8; i++) {
+          if (node->info.children[i]->num_points == 0) {
+            // clean up
+            delete node->info.children[i];
+            node->info.children[i] = nullptr;
+          } else {
+            l_pt = node->info.children[i]->info.points[0];
           }
-        };
-
-        // now check if there is only one point left. If so, we can turn this
-        // node to a leaf node
-        if (node->num_points == 1) {
-          node->is_leaf = true;
-          id_point l_pt;
-          for (int i = 0; i < 8; i++) {
-            if (node->info.children[i] != nullptr) {
-              l_pt = node->info.children[i]->info.points[0];
-            }
-          }
-
-          // change union data type
-          node->info.children.~array();
-          new (&node->info.points) std::vector<id_point>{l_pt};
         }
-      };
-    }; // if node is nullptr, there is nothing to delete
+
+        // change union data type
+        node->info.children.~array();
+        new (&node->info.points) std::vector<id_point>{l_pt};
+      }
+    };
   };
 
   return del_id;
