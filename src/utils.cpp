@@ -8,12 +8,12 @@
 // LINEAR ALGEBRA
 // -------------------------------------------------------------------------------------------------//
 
-double dot(std::array<double, 3> a, std::array<double, 3> b) {
+double dot(const std::array<double, 3> &a, const std::array<double, 3> &b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
 // helper function computes distance between
-double distance(std::array<double, 3> a, Node *node) {
+double distance(const std::array<double, 3> &a, const Node *node) {
   std::array<double, 3> center = node->center;
   std::array<double, 3> diff = {std::abs(a[0] - center[0]),
                                 std::abs(a[1] - center[1]),
@@ -29,7 +29,8 @@ double distance(std::array<double, 3> a, Node *node) {
   return diff[0] + diff[1] + diff[2];
 };
 
-double distance(std::array<double, 3> a, std::array<double, 3> b) {
+double distance(const std::array<double, 3> &a,
+                const std::array<double, 3> &b) {
   return std::pow(a[0] - b[0], 2) + std::pow(a[1] - b[1], 2) +
          std::pow(a[2] - b[2], 2);
 };
@@ -41,8 +42,10 @@ double distance(std::array<double, 3> a, std::array<double, 3> b) {
 std::vector<std::set<int>> join_graphs(const std::vector<std::set<int>> &g1,
                                        const std::vector<std::set<int>> &g2) {
   std::vector<std::set<int>> ret_adj_list(g1.size());
-  std::set_union(g1.begin(), g1.end(), g2.begin(), g2.end(),
-                 ret_adj_list.begin());
+  for (int i = 0; i < g1.size(); i++) {
+    std::set_union(g1[i].begin(), g1[i].end(), g2[i].begin(), g2[i].end(),
+                   std::inserter(ret_adj_list[i], ret_adj_list[i].begin()));
+  }
   return ret_adj_list;
 };
 

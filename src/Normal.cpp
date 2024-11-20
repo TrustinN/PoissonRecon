@@ -4,16 +4,14 @@
 #include "RiemannianGraph.hpp"
 #include "utils.hpp"
 #include <Eigen/Dense>
-#include <numeric>
 
 double offset(const std::array<double, 3> &n1,
               const std::array<double, 3> &n2) {
   return 1 - std::abs(dot(n1, n2));
 };
 
-TangentPlane get_tp(const std::vector<std::array<double, 3>> &vertices) {
-  TangentPlane tp;
-
+std::array<double, 3>
+get_normal(const std::vector<std::array<double, 3>> &vertices) {
   std::array<double, 3> centroid = {0, 0, 0};
   for (const auto &v : vertices) {
     centroid[0] += v[0];
@@ -21,7 +19,7 @@ TangentPlane get_tp(const std::vector<std::array<double, 3>> &vertices) {
     centroid[2] += v[2];
   };
 
-  for (auto &val : tp.center) {
+  for (auto &val : centroid) {
     val /= vertices.size();
   }
 
@@ -34,8 +32,10 @@ TangentPlane get_tp(const std::vector<std::array<double, 3>> &vertices) {
   Eigen::BDCSVD<Eigen::MatrixXd> svd(mat, Eigen::ComputeThinV);
   Eigen::Vector3d eig_vec = svd.matrixV().col(2);
 
-  std::copy(eig_vec.data(), eig_vec.data() + 3, tp.normal.begin());
-  return tp;
+  std::array<double, 3> normal;
+  std::copy(eig_vec.data(), eig_vec.data() + 3, normal.begin());
+
+  return normal;
 };
 
 void align_normals(const std::array<double, 3> &n1, std::array<double, 3> &n2) {
@@ -83,6 +83,7 @@ void orient_normals(std::vector<std::array<double, 3>> &normals,
 
 NormalApproximations::NormalApproximations(
     std::vector<std::array<double, 3>> vertices) {
+  _vertices = vertices;
 
   Octree octree(vertices);
   RiemannianGraph rg = RiemannianGraph(vertices, octree, 15);
@@ -96,13 +97,11 @@ NormalApproximations::NormalApproximations(
       np.push_back(vertices[n]);
     };
 
-    TangentPlane tp = get_tp(np);
-    _normals.push_back(tp.normal);
-    _planes.push_back(tp);
+    _normals.push_back(get_normal(np));
   };
 
   // Get the emst
-  Emst emst = Emst(_vertices, octree);
+  Emst emst = Emst(vertices, octree);
 
   _adj_list = join_graphs(emst.adj_list(), rg_adj_list);
   _traversal_order =

@@ -9,9 +9,9 @@
 // LINEAR ALGEBRA
 // -------------------------------------------------------------------------------------------------//
 
-double dot(const std::array<double, 3> a, const std::array<double, 3> b);
-double distance(std::array<double, 3> a, Node *node);
-double distance(std::array<double, 3> a, std::array<double, 3> b);
+double dot(const std::array<double, 3> &a, const std::array<double, 3> &b);
+double distance(const std::array<double, 3> &a, const Node *node);
+double distance(const std::array<double, 3> &a, const std::array<double, 3> &b);
 
 // -------------------------------------------------------------------------------------------------//
 // GRAPH UTILS
@@ -51,30 +51,24 @@ std::vector<std::set<int>> get_mst(const std::vector<T> &vertices,
   };
 
   while (true) {
-    MSTpqData item;
-    // retrieve minimum
-    while (true) {
-      MSTpqData item = min_pq.top();
-      min_pq.pop();
-      if (!visited[item.id_leaf]) {
-        visited[item.id_leaf] = 1;
+    MSTpqData item = min_pq.top();
+    min_pq.pop();
+    if (!visited[item.id_leaf]) {
+      visited[item.id_leaf] = 1;
+
+      ret_adj_list[item.id_root].insert(item.id_leaf);
+      ret_adj_list[item.id_leaf].insert(item.id_root);
+      edges++;
+
+      if (edges == vertices.size() - 1) {
         break;
-      };
-    };
+      }
 
-    ret_adj_list[item.id_root].insert(item.id_leaf);
-    ret_adj_list[item.id_leaf].insert(item.id_root);
-    edges++;
-
-    if (edges == vertices.size() - 1) {
-      break;
-    }
-
-    for (int idx : adj_list[item.id_leaf]) {
-      if (!visited[idx]) {
-
-        min_pq.push(MSTpqData(weight(vertices[item.id_leaf], vertices[idx]),
-                              item.id_leaf, idx));
+      for (int idx : adj_list[item.id_leaf]) {
+        if (!visited[idx]) {
+          min_pq.push(MSTpqData(weight(vertices[item.id_leaf], vertices[idx]),
+                                item.id_leaf, idx));
+        };
       };
     };
   };
