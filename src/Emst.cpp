@@ -3,7 +3,7 @@
 #include <queue>
 
 Emst::Emst(const std::vector<std::array<double, 3>> vertices, Octree &octree)
-    : num_edges(0) {
+    : _num_edges(0) {
   std::vector<int> visited(vertices.size(), 0);
   visited[0] = 1;
 
@@ -28,11 +28,11 @@ Emst::Emst(const std::vector<std::array<double, 3>> vertices, Octree &octree)
     };
 
     // add leaf to tree
-    adj_list[item.id_root].insert(item.id_leaf);
-    adj_list[item.id_leaf].insert(item.id_root);
-    num_edges++;
+    _adj_list[item.id_root].insert(item.id_leaf);
+    _adj_list[item.id_leaf].insert(item.id_root);
+    _num_edges++;
 
-    if (num_edges == vertices.size() - 1) {
+    if (_num_edges == vertices.size() - 1) {
       break;
     }
 

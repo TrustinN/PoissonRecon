@@ -10,15 +10,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
-include(FetchContent)
-
-FetchContent_Declare(
-  Eigen
-  GIT_REPOSITORY https://gitlab.com/libeigen/eigen.git
-  GIT_TAG 3.4.0)
-
-FetchContent_MakeAvailable(Eigen)
+set(EIGEN_DIR "${CMAKE_SOURCE_DIR}/third_party/eigen")
+include_directories(${EIGEN_DIR})
 
 add_executable(main src/main.cpp src/Octree.cpp src/utils.cpp src/io.cpp)
-target_link_libraries(main PRIVATE Eigen3::Eigen)
 add_subdirectory(tests)
