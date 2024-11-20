@@ -37,6 +37,7 @@ public:
   NormalApproximations(std::vector<std::array<double, 3>> vertices);
 
   std::vector<std::array<double, 3>> vertices() const { return _vertices; };
+  std::vector<std::array<double, 3>> normals() const { return _normals; };
   std::vector<TangentPlane> planes() const { return _planes; };
 };
 

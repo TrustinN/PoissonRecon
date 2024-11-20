@@ -50,10 +50,10 @@ std::vector<std::set<int>> join_graphs(const std::vector<std::set<int>> &g1,
 // RANDOM NUMBER GENERATION
 // -------------------------------------------------------------------------------------------------//
 
-std::random_device rd;
-std::mt19937 gen(rd());
-
 std::vector<int> rand_ints(int min, int max, int num) {
+
+  std::random_device rd;
+  std::mt19937 gen(rd());
 
   std::uniform_int_distribution<> dis(min, max);
   std::vector<int> points(num);
@@ -63,6 +63,9 @@ std::vector<int> rand_ints(int min, int max, int num) {
 
 std::vector<std::array<double, 3>> rand_points(double min, double max,
                                                int num_points) {
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
   std::uniform_real_distribution<> dis(min, max);
 
   std::vector<std::array<double, 3>> points(num_points);

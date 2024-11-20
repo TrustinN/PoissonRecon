@@ -1,16 +1,13 @@
-#include "Octree.hpp"
+#include "Normal.hpp"
 #include "io.hpp"
-#include "utils.hpp"
+#include "sampling.hpp"
 #include <iostream>
 
 int main() {
-  Octree tree(rand_points(0.0, 100.0, 4), 8);
 
-  std::vector<int> nn = tree.kNearestNeighbors({1.0, 2.0, 3.0}, 3);
-  std::cout << nn << std::endl;
-  std::cout << nn[0] << std::endl;
-  std::cout << nn[1] << std::endl;
-  std::cout << nn[2] << std::endl;
+  std::vector<std::array<double, 3>> vertices = sample_sphere(100, 3);
+  NormalApproximations normals(vertices);
+  std::cout << normals.normals() << std::endl;
 
   return 0;
 }

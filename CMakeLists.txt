@@ -13,5 +13,14 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 set(EIGEN_DIR "${CMAKE_SOURCE_DIR}/third_party/eigen")
 include_directories(${EIGEN_DIR})
 
-add_executable(main src/main.cpp src/Octree.cpp src/utils.cpp src/io.cpp)
+add_executable(
+  main
+  src/main.cpp
+  src/Octree.cpp
+  src/utils.cpp
+  src/io.cpp
+  src/sampling.cpp
+  src/Normal.cpp
+  src/RiemannianGraph.cpp
+  src/Emst.cpp)
 add_subdirectory(tests)

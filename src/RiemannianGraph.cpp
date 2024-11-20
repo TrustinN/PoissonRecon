@@ -4,7 +4,7 @@
 RiemannianGraph::RiemannianGraph(
     const std::vector<std::array<double, 3>> &vertices, const Octree &octree,
     int k) {
-  max_edge = -std::numeric_limits<double>::infinity();
+  _max_edge = -std::numeric_limits<double>::infinity();
 
   for (int i = 0; i < vertices.size(); i++) {
     auto v = vertices[i];
@@ -14,10 +14,10 @@ RiemannianGraph::RiemannianGraph(
       np.push_back(vertices[n]);
     }
 
-    max_edge = std::max(max_edge, distance(v, np[np.size() - 1]));
+    _max_edge = std::max(_max_edge, distance(v, np[np.size() - 1]));
     for (int n : ni) {
-      adj_list[i].insert(n);
-      adj_list[n].insert(i);
+      _adj_list[i].insert(n);
+      _adj_list[n].insert(i);
     };
   };
 };

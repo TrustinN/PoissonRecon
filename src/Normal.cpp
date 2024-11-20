@@ -14,8 +14,12 @@ double offset(const std::array<double, 3> &n1,
 TangentPlane get_tp(const std::vector<std::array<double, 3>> &vertices) {
   TangentPlane tp;
 
-  std::array<double, 3> centroid = std::accumulate(
-      vertices.begin(), vertices.end(), std::array<double, 3>{0, 0, 0});
+  std::array<double, 3> centroid = {0, 0, 0};
+  for (const auto &v : vertices) {
+    centroid[0] += v[0];
+    centroid[1] += v[1];
+    centroid[2] += v[2];
+  };
 
   for (auto &val : tp.center) {
     val /= vertices.size();
@@ -28,7 +32,7 @@ TangentPlane get_tp(const std::vector<std::array<double, 3>> &vertices) {
   };
 
   Eigen::BDCSVD<Eigen::MatrixXd> svd(mat, Eigen::ComputeThinV);
-  Eigen::Matrix<double, Eigen::Dynamic, 3> eig_vec = svd.matrixV().col(2);
+  Eigen::Vector3d eig_vec = svd.matrixV().col(2);
 
   std::copy(eig_vec.data(), eig_vec.data() + 3, tp.normal.begin());
   return tp;
@@ -79,8 +83,8 @@ void orient_normals(std::vector<std::array<double, 3>> &normals,
 
 NormalApproximations::NormalApproximations(
     std::vector<std::array<double, 3>> vertices) {
-  Octree octree(vertices);
 
+  Octree octree(vertices);
   RiemannianGraph rg = RiemannianGraph(vertices, octree, 15);
   std::vector<std::set<int>> rg_adj_list = rg.adj_list();
 
