@@ -10,18 +10,14 @@ std::vector<std::array<double, 3>> sample_sphere(int n, double r) {
 
   std::vector<std::array<double, 3>> points(n);
   for (int i = 0; i < n; i++) {
-    double x = dis(gen);
-    double y = std::sqrt(std::pow(r, 2) - std::pow(x, 2));
+    double z = 2 * r * dis_scale(gen) - r;
+    double theta = 2 * M_PI * dis_scale(gen);
 
-    double scale = dis_scale(gen);
+    double a = std::sqrt(std::pow(r, 2) - std::pow(z, 2));
+    double x = std::cos(theta) * a;
+    double y = std::sin(theta) * a;
 
-    x *= scale;
-    y *= scale;
-
-    double base = r * scale;
-    double height = std::sqrt(std::pow(r, 2) - std::pow(base, 2));
-
-    points[i] = {x, y, height};
+    points[i] = {x, y, z};
   };
   return points;
 };

@@ -13,6 +13,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 set(EIGEN_DIR "${CMAKE_SOURCE_DIR}/third_party/eigen")
 include_directories(${EIGEN_DIR})
 
+find_package(VTK REQUIRED)
+
 add_executable(
   main
   src/main.cpp
@@ -23,4 +25,16 @@ add_executable(
   src/Normal.cpp
   src/RiemannianGraph.cpp
   src/Emst.cpp)
+
+add_executable(
+  plot
+  src/plot.cpp
+  src/sampling.cpp
+  src/Octree.cpp
+  src/utils.cpp
+  src/io.cpp
+  src/Normal.cpp
+  src/RiemannianGraph.cpp
+  src/Emst.cpp)
+target_link_libraries(plot PRIVATE ${VTK_LIBRARIES})
 add_subdirectory(tests)
