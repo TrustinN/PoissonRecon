@@ -1,7 +1,7 @@
 #ifndef IO_HPP
 #define IO_HPP
 
-#include "Octree.hpp"
+#include "../Octree.hpp"
 #include <array>
 #include <iostream>
 

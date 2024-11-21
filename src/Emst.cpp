@@ -1,5 +1,5 @@
 #include "Emst.hpp"
-#include "utils.hpp" // Contains MSTpqData
+#include "utils/utils.hpp" // Contains MSTpqData
 #include <queue>
 
 Emst::Emst(const std::vector<std::array<double, 3>> vertices, Octree &octree)

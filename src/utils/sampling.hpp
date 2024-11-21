@@ -1,4 +1,3 @@
-
 #ifndef SAMPLING_HPP
 #define SAMPLING_HPP
 

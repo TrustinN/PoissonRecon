@@ -10,34 +10,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
+find_package(VTK REQUIRED)
 set(EIGEN_DIR "${CMAKE_SOURCE_DIR}/third_party/eigen")
 include_directories(${EIGEN_DIR})
 
-find_package(VTK REQUIRED)
-
-add_executable(
-  main
-  src/main.cpp
-  src/Octree.cpp
-  src/utils.cpp
-  src/io.cpp
-  src/sampling.cpp
-  src/Normal.cpp
-  src/RiemannianGraph.cpp
-  src/Emst.cpp)
-
-add_executable(test src/test.cpp)
-target_link_libraries(test PRIVATE ${VTK_LIBRARIES})
-
-add_executable(
-  plot
-  src/plot.cpp
-  src/sampling.cpp
-  src/Octree.cpp
-  src/utils.cpp
-  src/io.cpp
-  src/Normal.cpp
-  src/RiemannianGraph.cpp
-  src/Emst.cpp)
-target_link_libraries(plot PRIVATE ${VTK_LIBRARIES})
+add_subdirectory(src)
 add_subdirectory(tests)

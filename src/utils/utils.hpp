@@ -1,13 +1,24 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
-#include "Octree.hpp"
+#include "../Octree.hpp"
 #include <queue>
 #include <set>
 
 // -------------------------------------------------------------------------------------------------//
 // LINEAR ALGEBRA
 // -------------------------------------------------------------------------------------------------//
+
+std::array<double, 3> operator*(const std::array<double, 3> &a,
+                                const double &b);
+std::array<double, 3> operator*(const double &a,
+                                const std::array<double, 3> &b);
+std::array<double, 3> operator+(const std::array<double, 3> &a,
+                                const double &b);
+std::array<double, 3> operator+(const double &a,
+                                const std::array<double, 3> &b);
+std::array<double, 3> operator+(const std::array<double, 3> &a,
+                                const std::array<double, 3> &b);
 std::array<double, 3> operator-(const std::array<double, 3> &a,
                                 const std::array<double, 3> &b);
 double dot(const std::array<double, 3> &a, const std::array<double, 3> &b);

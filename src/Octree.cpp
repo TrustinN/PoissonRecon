@@ -1,5 +1,5 @@
 #include "Octree.hpp"
-#include "utils.hpp"
+#include "utils/utils.hpp"
 #include <array>
 #include <queue>
 #include <vector>
@@ -33,6 +33,7 @@ Node *Octree::build(std::vector<id_point> points, std::array<double, 3> center,
 
   bool is_leaf = depth == max_depth || points.size() <= 1;
   Node *ret_node = new Node(points, center, width, is_leaf, depth);
+  _max_depth = std::max(depth, _max_depth);
 
   if (!is_leaf) {
 
@@ -54,7 +55,7 @@ Node *Octree::build(std::vector<id_point> points, std::array<double, 3> center,
     // Make pointers to subdivision nodes
     std::array<Node *, 8> &n_child = ret_node->info.children;
     double n_width = width / 2.0;
-    double c_off = n_width / 2.0;
+    double c_off = n_width;
 
     for (int i = 0; i < 8; i++) {
 
@@ -65,13 +66,15 @@ Node *Octree::build(std::vector<id_point> points, std::array<double, 3> center,
 
       n_child[i] = build(sub_d[i], n_center, n_width, depth + 1, max_depth);
     };
+  } else {
+    _child_nodes.push_back(ret_node);
   };
 
   return ret_node;
 };
 
 Octree::Octree(std::vector<std::array<double, 3>> points, int max_depth)
-    : _size(points.size()), _points(points) {
+    : _size(points.size()), _points(points), _max_depth(0) {
 
   if (points.size() > 0) {
 
@@ -99,7 +102,7 @@ Octree::Octree(std::vector<std::array<double, 3>> points, int max_depth)
       id_points[i] = std::make_tuple(i, points[i]);
     }
 
-    this->_root = Octree::build(id_points, center, width, 1, max_depth);
+    this->_root = Octree::build(id_points, center, width / 2, 1, max_depth);
 
   } else {
     this->_root = nullptr;

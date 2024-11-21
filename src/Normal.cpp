@@ -2,7 +2,7 @@
 #include "Emst.hpp"
 #include "Octree.hpp"
 #include "RiemannianGraph.hpp"
-#include "utils.hpp"
+#include "utils/utils.hpp"
 #include <Eigen/Dense>
 
 double offset(const std::array<double, 3> &n1,
@@ -109,4 +109,7 @@ NormalApproximations::NormalApproximations(
       get_mst<std::array<double, 3>>(_normals, _adj_list, offset);
 
   orient_normals(_normals, vertices, _traversal_order);
+  // std::transform(_normals.begin(), _normals.end(),
+  //                std::inserter(_inward_normals, _inward_normals.begin()),
+  //                [](const std::array<double, 3> &n) { return -1 * n; });
 }

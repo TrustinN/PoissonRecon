@@ -50,14 +50,19 @@ public:
   std::vector<std::array<double, 3>> points() const { return _points; };
   std::vector<int> unused() const { return unused_ids; };
 
+  auto begin() { return _child_nodes.begin(); }
+  auto end() { return _child_nodes.end(); }
+
 private:
   int _size;
+  int _max_depth;
   Node *_root;
   std::vector<std::array<double, 3>> _points;
   std::vector<int>
       unused_ids; // When we delete, deleted point's ids will go here. This way,
                   // we don't need to resize our _points, when we insert a new
                   // point, we can just replace the value in that position
+  std::vector<Node *> _child_nodes;
 
   Node *build(std::vector<id_point> points, std::array<double, 3> center,
               double width, int depth, int max_depth);

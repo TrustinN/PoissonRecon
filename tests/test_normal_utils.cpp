@@ -1,6 +1,6 @@
 #include "../src/Normal.hpp"
-#include "../src/sampling.hpp"
-#include "../src/utils.hpp"
+#include "../src/utils/sampling.hpp"
+#include "../src/utils/utils.hpp"
 #include <array>
 #include <gtest/gtest.h>
 #include <set>

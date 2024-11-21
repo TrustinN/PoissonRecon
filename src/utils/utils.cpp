@@ -1,5 +1,4 @@
 #include "utils.hpp"
-#include "Octree.hpp"
 #include <algorithm>
 #include <array>
 #include <random>
@@ -7,6 +6,31 @@
 // -------------------------------------------------------------------------------------------------//
 // LINEAR ALGEBRA
 // -------------------------------------------------------------------------------------------------//
+
+std::array<double, 3> operator*(const std::array<double, 3> &a,
+                                const double &b) {
+  return std::array<double, 3>{a[0] * b, a[1] * b, a[2] * b};
+};
+
+std::array<double, 3> operator*(const double &a,
+                                const std::array<double, 3> &b) {
+  return b * a;
+};
+
+std::array<double, 3> operator+(const std::array<double, 3> &a,
+                                const double &b) {
+  return std::array<double, 3>{a[0] + b, a[1] + b, a[2] + b};
+};
+
+std::array<double, 3> operator+(const double &a,
+                                const std::array<double, 3> &b) {
+  return b + a;
+};
+
+std::array<double, 3> operator+(const std::array<double, 3> &a,
+                                const std::array<double, 3> &b) {
+  return std::array<double, 3>{a[0] + b[0], a[1] + b[1], a[2] + b[2]};
+};
 
 std::array<double, 3> operator-(const std::array<double, 3> &a,
                                 const std::array<double, 3> &b) {
@@ -26,7 +50,7 @@ double distance(const std::array<double, 3> &a, const Node *node) {
 
   // If distance along an axis is < node width
   // only need to compute remaining distance along other axis
-  double width = node->width / 2;
+  double width = node->width;
   diff[0] = (diff[0] < width) ? 0 : std::pow(diff[0] - width, 2);
   diff[1] = (diff[1] < width) ? 0 : std::pow(diff[1] - width, 2);
   diff[2] = (diff[2] < width) ? 0 : std::pow(diff[2] - width, 2);

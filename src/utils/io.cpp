@@ -1,5 +1,5 @@
 #include "io.hpp"
-#include "Octree.hpp"
+#include "../Octree.hpp"
 #include <array>
 #include <iostream>
 

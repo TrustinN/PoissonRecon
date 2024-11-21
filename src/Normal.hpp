@@ -25,6 +25,7 @@ class NormalApproximations {
 private:
   std::vector<std::array<double, 3>> _vertices;
   std::vector<std::array<double, 3>> _normals;
+  std::vector<std::array<double, 3>> _inward_normals;
   std::vector<std::set<int>> _traversal_order;
   std::vector<std::set<int>> _adj_list;
 
@@ -33,6 +34,9 @@ public:
 
   std::vector<std::array<double, 3>> vertices() const { return _vertices; };
   std::vector<std::array<double, 3>> normals() const { return _normals; };
+  std::vector<std::array<double, 3>> inward_normals() const {
+    return _inward_normals;
+  };
 };
 
 #endif
