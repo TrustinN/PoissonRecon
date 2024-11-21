@@ -1,5 +1,5 @@
 #include "RiemannianGraph.hpp"
-#include "utils/utils.hpp"
+#include "utils/linalg.hpp"
 
 RiemannianGraph::RiemannianGraph(
     const std::vector<std::array<double, 3>> &vertices, const Octree &octree,

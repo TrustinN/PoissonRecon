@@ -1,5 +1,6 @@
 #include "Emst.hpp"
-#include "utils/utils.hpp" // Contains MSTpqData
+#include "utils/graphs.hpp" // Contains MSTpqData
+#include "utils/linalg.hpp" // Distance function
 #include <queue>
 
 Emst::Emst(const std::vector<std::array<double, 3>> vertices, Octree &octree)

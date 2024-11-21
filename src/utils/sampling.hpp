@@ -4,6 +4,18 @@
 #include <array>
 #include <vector>
 
+// -------------------------------------------------------------------------------------------------//
+// RANDOM NUMBER GENERATION
+// -------------------------------------------------------------------------------------------------//
+
+std::vector<int> rand_ints(int min, int max, int num);
+std::vector<std::array<double, 3>> rand_points(double min, double max,
+                                               int num_points);
+
+// -------------------------------------------------------------------------------------------------//
+// Spatial sampling
+// -------------------------------------------------------------------------------------------------//
+
 std::vector<std::array<double, 3>> sample_sphere(int n, double r);
 std::vector<std::array<double, 3>> sample_tri(int n,
                                               const std::array<double, 3> &c1,

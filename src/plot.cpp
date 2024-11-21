@@ -1,6 +1,6 @@
 #include "Normal.hpp"
+#include "utils/linalg.hpp"
 #include "utils/sampling.hpp"
-#include "utils/utils.hpp"
 #include <vtkActor.h>
 #include <vtkCamera.h>
 #include <vtkCellData.h>
@@ -18,8 +18,8 @@
 #include <vtkVertexGlyphFilter.h>
 
 int main() {
-  // std::vector<std::array<double, 3>> vertices = sample_sphere(10000, 3);
-  std::vector<std::array<double, 3>> vertices = sample_box(10000, 8, 8, 8);
+  std::vector<std::array<double, 3>> vertices = sample_sphere(10000, 3);
+  // std::vector<std::array<double, 3>> vertices = sample_box(10000, 3, 3, 3);
   NormalApproximations na(vertices);
   std::vector<std::array<double, 3>> normals = na.normals();
 

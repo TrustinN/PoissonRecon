@@ -1,29 +1,9 @@
-#ifndef UTILS_HPP
-#define UTILS_HPP
 
-#include "../Octree.hpp"
+#ifndef GRAPHS_HPP
+#define GRAPHS_HPP
+
 #include <queue>
 #include <set>
-
-// -------------------------------------------------------------------------------------------------//
-// LINEAR ALGEBRA
-// -------------------------------------------------------------------------------------------------//
-
-std::array<double, 3> operator*(const std::array<double, 3> &a,
-                                const double &b);
-std::array<double, 3> operator*(const double &a,
-                                const std::array<double, 3> &b);
-std::array<double, 3> operator+(const std::array<double, 3> &a,
-                                const double &b);
-std::array<double, 3> operator+(const double &a,
-                                const std::array<double, 3> &b);
-std::array<double, 3> operator+(const std::array<double, 3> &a,
-                                const std::array<double, 3> &b);
-std::array<double, 3> operator-(const std::array<double, 3> &a,
-                                const std::array<double, 3> &b);
-double dot(const std::array<double, 3> &a, const std::array<double, 3> &b);
-double distance(const std::array<double, 3> &a, const Node *node);
-double distance(const std::array<double, 3> &a, const std::array<double, 3> &b);
 
 // -------------------------------------------------------------------------------------------------//
 // GRAPH UTILS
@@ -90,13 +70,4 @@ std::vector<std::set<int>> get_mst(const std::vector<T> &vertices,
 
 std::vector<std::set<int>> join_graphs(const std::vector<std::set<int>> &g1,
                                        const std::vector<std::set<int>> &g2);
-
-// -------------------------------------------------------------------------------------------------//
-// RANDOM NUMBER GENERATION
-// -------------------------------------------------------------------------------------------------//
-
-std::vector<int> rand_ints(int min, int max, int num);
-std::vector<std::array<double, 3>> rand_points(double min, double max,
-                                               int num_points);
-
 #endif

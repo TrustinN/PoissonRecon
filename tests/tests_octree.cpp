@@ -1,5 +1,5 @@
 #include "../src/Octree.hpp"
-#include "../src/utils/utils.hpp"
+#include "../src/utils/sampling.hpp"
 #include <array>
 #include <gtest/gtest.h>
 #include <numeric>

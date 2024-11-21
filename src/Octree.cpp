@@ -1,5 +1,5 @@
 #include "Octree.hpp"
-#include "utils/utils.hpp"
+#include "utils/linalg.hpp"
 #include <array>
 #include <queue>
 #include <vector>

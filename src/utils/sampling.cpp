@@ -1,8 +1,40 @@
 #include "sampling.hpp"
-#include "utils.hpp"
 #include <Eigen/Dense>
-#include <iostream>
 #include <random>
+
+// -------------------------------------------------------------------------------------------------//
+// RANDOM NUMBER GENERATION
+// -------------------------------------------------------------------------------------------------//
+
+std::vector<int> rand_ints(int min, int max, int num) {
+
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  std::uniform_int_distribution<> dis(min, max);
+  std::vector<int> points(num);
+  std::generate(points.begin(), points.end(), [&]() { return dis(gen); });
+  return points;
+};
+
+std::vector<std::array<double, 3>> rand_points(double min, double max,
+                                               int num_points) {
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  std::uniform_real_distribution<> dis(min, max);
+
+  std::vector<std::array<double, 3>> points(num_points);
+  for (int i = 0; i < num_points; i++) {
+    std::generate(points[i].begin(), points[i].end(),
+                  [&]() { return dis(gen); });
+  };
+  return points;
+};
+
+// -------------------------------------------------------------------------------------------------//
+// Spatial sampling
+// -------------------------------------------------------------------------------------------------//
 
 std::vector<std::array<double, 3>> sample_sphere(int n, double r) {
 
