@@ -1,8 +1,12 @@
 #include "Normal.hpp"
 #include "sampling.hpp"
+#include "utils.hpp"
 #include <vtkActor.h>
 #include <vtkCamera.h>
+#include <vtkCellData.h>
+#include <vtkDoubleArray.h>
 #include <vtkLine.h>
+#include <vtkLookupTable.h>
 #include <vtkPoints.h>
 #include <vtkPolyData.h>
 #include <vtkPolyDataMapper.h>
@@ -14,7 +18,8 @@
 #include <vtkVertexGlyphFilter.h>
 
 int main() {
-  std::vector<std::array<double, 3>> vertices = sample_sphere(1000, 3);
+  // std::vector<std::array<double, 3>> vertices = sample_sphere(10000, 3);
+  std::vector<std::array<double, 3>> vertices = sample_box(10000, 3, 3, 3);
   NormalApproximations na(vertices);
   std::vector<std::array<double, 3>> normals = na.normals();
 
@@ -24,6 +29,9 @@ int main() {
   }
 
   vtkNew<vtkCellArray> linesArray;
+  vtkNew<vtkDoubleArray> lineScalars;
+  lineScalars->SetName("LineScalars");
+  lineScalars->SetNumberOfComponents(1);
 
   // Add lines to points and cell array
   for (int i = 0; i < normals.size(); i++) {
@@ -37,20 +45,33 @@ int main() {
     vtkLine->GetPointIds()->SetId(0, points->GetNumberOfPoints() - 2);
     vtkLine->GetPointIds()->SetId(1, points->GetNumberOfPoints() - 1);
     linesArray->InsertNextCell(vtkLine);
+
+    // Assign a scalar value to the line
+    double scalar = (dot(n, {0.3, 0.3, 0.3}) + 1) / 2;
+    lineScalars->InsertNextValue(scalar);
   }
 
   // data here
   vtkNew<vtkPolyData> polyData;
   polyData->SetPoints(points);
   polyData->SetLines(linesArray);
+  polyData->GetCellData()->SetScalars(lineScalars);
+
+  vtkNew<vtkLookupTable> rainbowBlueRedLut;
+  rainbowBlueRedLut->SetNumberOfColors(256);
+  rainbowBlueRedLut->SetHueRange(0.667, 0.0);
+  rainbowBlueRedLut->Build();
 
   // Mapper and Actor for Lines
   vtkNew<vtkPolyDataMapper> lineMapper;
   lineMapper->SetInputData(polyData);
+  lineMapper->SetLookupTable(rainbowBlueRedLut);
+  lineMapper->SetScalarRange(lineScalars->GetRange());
 
   vtkNew<vtkActor> lineActor;
   lineActor->SetMapper(lineMapper);
   lineActor->GetProperty()->SetLineWidth(0.01);
+  lineActor->GetProperty()->SetInterpolationToPhong();
 
   // vertex Actor & Mapper
   vtkNew<vtkVertexGlyphFilter> vertexFilter;

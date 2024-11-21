@@ -76,6 +76,7 @@ void orient_normals(std::vector<std::array<double, 3>> &normals,
       start_idx = i;
     }
   };
+  align_normals(std::array<double, 3>{-1, 0, 0}, normals[start_idx]);
 
   visited[start_idx] = 1;
   dfs_align(start_idx, traversal_order, visited, normals);

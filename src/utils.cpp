@@ -8,6 +8,11 @@
 // LINEAR ALGEBRA
 // -------------------------------------------------------------------------------------------------//
 
+std::array<double, 3> operator-(const std::array<double, 3> &a,
+                                const std::array<double, 3> &b) {
+  return std::array<double, 3>{a[0] - b[0], a[1] - b[1], a[2] - b[2]};
+};
+
 double dot(const std::array<double, 3> &a, const std::array<double, 3> &b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }

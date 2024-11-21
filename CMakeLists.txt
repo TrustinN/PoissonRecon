@@ -26,6 +26,9 @@ add_executable(
   src/RiemannianGraph.cpp
   src/Emst.cpp)
 
+add_executable(test src/test.cpp)
+target_link_libraries(test PRIVATE ${VTK_LIBRARIES})
+
 add_executable(
   plot
   src/plot.cpp
