@@ -14,13 +14,13 @@ struct basisF {
   double operator()(const std::array<double, 3> &p);
 };
 
-class pOctree : Octree {
-public:
-  pOctree() : Octree() {};
-  pOctree(std::vector<std::array<double, 3>> points, int depth = 8)
-      : Octree(points, depth, depth) {};
+struct pNode : Node {};
 
-private:
+class pOctree : public Octree<pNode> {
+public:
+  pOctree() : Octree<pNode>() {};
+  pOctree(std::vector<std::array<double, 3>> points, int depth = 8)
+      : Octree<pNode>(points, depth, depth) {};
 };
 
 #endif

@@ -70,7 +70,7 @@ private:
   std::vector<TreeNode *> _child_nodes;
 
   TreeNode *build(std::vector<id_point> points, std::array<double, 3> center,
-                  double width, int depth, int max_depth, int min_depth);
+                  double width, int depth);
 
   int Delete(TreeNode *node, std::array<double, 3> p);
 };
@@ -83,13 +83,14 @@ private:
 template <typename TreeNode>
 TreeNode *Octree<TreeNode>::build(std::vector<id_point> points,
                                   std::array<double, 3> center, double width,
-                                  int depth, int max_depth, int min_depth) {
+                                  int depth) {
 
   bool is_leaf;
-  if (min_depth == -1) {
-    is_leaf = depth == max_depth || points.size() <= 1;
+  if (_min_depth == -1) {
+    is_leaf = depth == _max_depth || points.size() <= 1;
   } else {
-    is_leaf = (depth == min_depth && depth == max_depth) || points.size() == 0;
+    is_leaf =
+        (depth == _min_depth && depth == _max_depth) || points.size() == 0;
   };
   TreeNode *ret_node = new TreeNode(points, center, width, is_leaf, depth);
   _max_depth = std::max(depth, _max_depth);
@@ -114,17 +115,15 @@ TreeNode *Octree<TreeNode>::build(std::vector<id_point> points,
     // Make pointers to subdivision nodes
     std::array<Node *, 8> &n_child = ret_node->info.children;
     double n_width = width / 2.0;
-    double c_off = n_width;
 
     for (int i = 0; i < 8; i++) {
 
       std::array<double, 3> n_center = center;
-      n_center[0] += (i % 2 == 0) ? -c_off : c_off;
-      n_center[1] += ((i >> 1) % 2 == 0) ? -c_off : c_off;
-      n_center[2] += ((i >> 2) % 2 == 0) ? -c_off : c_off;
+      n_center[0] += (i % 2 == 0) ? -n_width : n_width;
+      n_center[1] += ((i >> 1) % 2 == 0) ? -n_width : n_width;
+      n_center[2] += ((i >> 2) % 2 == 0) ? -n_width : n_width;
 
-      n_child[i] =
-          build(sub_d[i], n_center, n_width, depth + 1, max_depth, min_depth);
+      n_child[i] = build(sub_d[i], n_center, n_width, depth + 1);
     };
   } else {
     _child_nodes.push_back(ret_node);
@@ -136,7 +135,7 @@ TreeNode *Octree<TreeNode>::build(std::vector<id_point> points,
 template <typename TreeNode>
 Octree<TreeNode>::Octree(std::vector<std::array<double, 3>> points,
                          int max_depth, int min_depth)
-    : _size(points.size()), _points(points), _max_depth(0),
+    : _size(points.size()), _points(points), _max_depth(max_depth),
       _min_depth(min_depth) {
 
   if (points.size() > 0) {
@@ -165,8 +164,7 @@ Octree<TreeNode>::Octree(std::vector<std::array<double, 3>> points,
       id_points[i] = std::make_tuple(i, points[i]);
     }
 
-    this->_root =
-        Octree::build(id_points, center, width / 2, 1, max_depth, min_depth);
+    this->_root = Octree::build(id_points, center, width / 2, 1);
 
   } else {
     this->_root = nullptr;
