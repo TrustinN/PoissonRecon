@@ -4,7 +4,7 @@
 #include <queue>
 
 Emst::Emst(const std::vector<std::array<double, 3>> vertices,
-           Octree<Node> &octree)
+           Octree<oNode> &octree)
     : _num_edges(0) {
 
   _adj_list = std::vector<std::set<int>>(vertices.size());

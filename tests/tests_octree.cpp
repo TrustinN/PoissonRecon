@@ -6,13 +6,13 @@
 #include <vector>
 
 TEST(OctreeConstruct, Empty) {
-  Octree<Node> *tree =
-      new Octree<Node>(std::vector<std::array<double, 3>>(), 3);
+  Octree<oNode> *tree =
+      new Octree<oNode>(std::vector<std::array<double, 3>>(), 3);
   ASSERT_EQ(tree->size(), 0);
 };
 
 TEST(OctreeConstruct, Default) {
-  Octree<Node> tree;
+  Octree<oNode> tree;
   ASSERT_EQ(tree.size(), 0);
 };
 
@@ -29,13 +29,13 @@ TEST(OctreeConstruct, Basic) {
 
   std::vector<std::array<double, 3>> points = {
       {0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {1, 1, 1}};
-  Octree<Node> tree(points);
+  Octree<oNode> tree(points);
   ASSERT_EQ(tree.size(), 4);
 };
 
 TEST(OctreeConstruct, Random) {
   std::vector<std::array<double, 3>> points = rand_points(0, 100, 1000);
-  Octree<Node> tree(points);
+  Octree<oNode> tree(points);
   ASSERT_EQ(tree.size(), 1000);
 }
 
@@ -51,7 +51,7 @@ TEST(OctreekNN, Basic) {
 
   std::vector<std::array<double, 3>> points = {
       {0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {1, 1, 1}};
-  Octree<Node> tree(points);
+  Octree<oNode> tree(points);
   std::vector<int> nn = tree.kNearestNeighbors({0.2, 0, 0});
   int nn_id = nn[0];
 
@@ -68,7 +68,7 @@ TEST(OctreekNN, Random) {
 
   const int max_points = 10000;
   std::vector<std::array<double, 3>> points = rand_points(0, 100, max_points);
-  Octree<Node> tree(points);
+  Octree<oNode> tree(points);
 
   std::array<double, 3> query = {1.0, 2.0, 3.0};
 
@@ -114,7 +114,7 @@ TEST(OctreeDelete, NoDelete) {
 
   std::vector<std::array<double, 3>> points = {
       {0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {1, 1, 1}};
-  Octree<Node> tree(points);
+  Octree<oNode> tree(points);
   tree.Delete({1, 2, 3});
 
   ASSERT_EQ(tree.size(), 4);
@@ -134,7 +134,7 @@ TEST(OctreeDelete, Basic) {
 
   std::vector<std::array<double, 3>> points = {
       {0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {1, 1, 1}};
-  Octree<Node> tree(points);
+  Octree<oNode> tree(points);
   tree.Delete({0, 0, 0});
   ASSERT_EQ(tree.size(), 3);
   ASSERT_EQ(tree.unused()[0], 0);
@@ -154,7 +154,7 @@ TEST(OctreeDelete, FullDelete) {
 
   std::vector<std::array<double, 3>> points = {
       {0, 0, 0}, {1, 0, 0}, {0, 1, 0}, {1, 1, 1}};
-  Octree<Node> tree(points);
+  Octree<oNode> tree(points);
   tree.Delete({0, 0, 0});
   tree.Delete({1, 0, 0});
   tree.Delete({0, 1, 0});
@@ -167,7 +167,7 @@ TEST(OctreeDelete, FullDelete) {
 
 TEST(OctreeDelete, Random) {
   std::vector<std::array<double, 3>> points = rand_points(0, 100, 1000);
-  Octree<Node> tree(points);
+  Octree<oNode> tree(points);
   std::vector<int> indices = rand_ints(0, 200, 1000);
 
   for (int idx : indices) {

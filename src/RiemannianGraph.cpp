@@ -3,7 +3,7 @@
 
 RiemannianGraph::RiemannianGraph(
     const std::vector<std::array<double, 3>> &vertices,
-    const Octree<Node> &octree, int k) {
+    const Octree<oNode> &octree, int k) {
 
   _max_edge = -std::numeric_limits<double>::infinity();
   _adj_list = std::vector<std::set<int>>(vertices.size());

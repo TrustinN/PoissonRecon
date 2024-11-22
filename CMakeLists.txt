@@ -9,6 +9,7 @@ project(
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
+set(CMAKE_BUILD_TYPE Debug)
 
 find_package(VTK REQUIRED)
 set(EIGEN_DIR "${CMAKE_SOURCE_DIR}/third_party/eigen")

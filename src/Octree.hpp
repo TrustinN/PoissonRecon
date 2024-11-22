@@ -1,41 +1,17 @@
 #ifndef OCTREE_HPP
 #define OCTREE_HPP
 
+#include "Node.hpp"
 #include "utils/linalg.hpp"
 #include <array>
+#include <iostream>
 #include <queue>
 #include <vector>
 
-using id_point = std::pair<int, std::array<double, 3>>;
-
-struct Node;
-
-union NodeInfo {
-  std::vector<id_point> points;
-  std::array<Node *, 8> children;
-  NodeInfo() : points() {};
-  ~NodeInfo() {};
-};
-
-struct Node {
-  //      6.----.----. 7      \\ index into children by bit map
-  //      /|   /|  3/ |       \\ xyz where x, y, z are 0 or 1
-  //    2.----.----.__.
-  //     |/|4 | |  | /|
-  //     .----.----. -.5
-  //     |/   |/   | /
-  //     .----.----.
-  //    0          1
-  Node(std::vector<id_point> points, std::array<double, 3> center, double width,
-       bool is_leaf, int depth);
-  ~Node();
-
-  double width;
-  std::array<double, 3> center;
-  bool is_leaf;
-  int depth;
-  int num_points;
-  NodeInfo info;
+struct oNode : public Node {
+  oNode(std::vector<id_point> points, std::array<double, 3> center,
+        double width, bool is_leaf, int depth);
+  NodeInfo<oNode> info;
 };
 
 template <typename TreeNode> class Octree {
@@ -51,16 +27,15 @@ public:
   int size() const { return _size; };
 
   TreeNode *root() const { return _root; };
-  std::vector<std::array<double, 3>> points() const { return _points; };
   std::vector<int> unused() const { return unused_ids; };
-
-  auto begin() { return _child_nodes.begin(); }
-  auto end() { return _child_nodes.end(); }
+  std::vector<std::array<double, 3>> points() const { return _points; };
+  std::vector<TreeNode *> child_nodes() const { return _child_nodes; };
 
 private:
   int _size;
   int _max_depth;
   int _min_depth;
+  int _curr_depth;
   TreeNode *_root;
   std::vector<std::array<double, 3>> _points;
   std::vector<int>
@@ -89,11 +64,11 @@ TreeNode *Octree<TreeNode>::build(std::vector<id_point> points,
   if (_min_depth == -1) {
     is_leaf = depth == _max_depth || points.size() <= 1;
   } else {
-    is_leaf =
-        (depth == _min_depth && depth == _max_depth) || points.size() == 0;
+    is_leaf = (_min_depth <= depth && points.size() <= 1) ||
+              depth == _max_depth || points.size() == 0;
   };
   TreeNode *ret_node = new TreeNode(points, center, width, is_leaf, depth);
-  _max_depth = std::max(depth, _max_depth);
+  _curr_depth = std::max(depth, _curr_depth);
 
   if (!is_leaf) {
 
@@ -113,7 +88,7 @@ TreeNode *Octree<TreeNode>::build(std::vector<id_point> points,
     };
 
     // Make pointers to subdivision nodes
-    std::array<Node *, 8> &n_child = ret_node->info.children;
+    std::array<TreeNode *, 8> &n_child = ret_node->info.children;
     double n_width = width / 2.0;
 
     for (int i = 0; i < 8; i++) {
@@ -164,7 +139,7 @@ Octree<TreeNode>::Octree(std::vector<std::array<double, 3>> points,
       id_points[i] = std::make_tuple(i, points[i]);
     }
 
-    this->_root = Octree::build(id_points, center, width / 2, 1);
+    this->_root = Octree<TreeNode>::build(id_points, center, width / 2, 1);
 
   } else {
     this->_root = nullptr;
@@ -181,7 +156,7 @@ template <typename TreeNode> struct pqData {
   union data {
     TreeNode *node;
     std::array<double, 3> pt;
-    data(Node *node) : node(node) {};
+    data(TreeNode *node) : node(node) {};
     data(const std::array<double, 3> pt) : pt(pt) {};
     ~data() {};
   } data;
@@ -302,8 +277,8 @@ int Octree<TreeNode>::Delete(TreeNode *node, std::array<double, 3> p) {
       // now check if there is only one point left. If so, we can turn this
       // node to a leaf node
       if (node->num_points == 1) {
-        node->is_leaf = true;
         id_point l_pt;
+        node->is_leaf = true;
         for (int i = 0; i < 8; i++) {
           if (node->info.children[i]->num_points == 0) {
             // clean up
@@ -313,10 +288,18 @@ int Octree<TreeNode>::Delete(TreeNode *node, std::array<double, 3> p) {
             l_pt = node->info.children[i]->info.points[0];
           }
         }
-
         // change union data type
         node->info.children.~array();
         new (&node->info.points) std::vector<id_point>{l_pt};
+
+      } else if (node->num_points == 0) {
+        node->is_leaf = true;
+
+        for (int i = 0; i < 8; i++) {
+          // clean up
+          delete node->info.children[i];
+          node->info.children[i] = nullptr;
+        }
       }
     };
   };
