@@ -11,7 +11,15 @@ int main() {
   // std::cout << normals.normals() << std::endl;
   std::vector<std::array<double, 3>> vertices = {
       {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
-  Octree octree(vertices);
+  Octree octree(vertices, 3, 3);
+  std::cout << octree << std::endl;
+  octree.Delete({0.0, 0.0, 0.0});
+  std::cout << octree << std::endl;
+  octree.Delete({1.0, 0.0, 0.0});
+  std::cout << octree << std::endl;
+  octree.Delete({0.0, 1.0, 0.0});
+  std::cout << octree << std::endl;
+  octree.Delete({0.0, 0.0, 1.0});
   std::cout << octree << std::endl;
 
   return 0;

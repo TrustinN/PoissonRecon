@@ -51,9 +51,6 @@ public:
   std::vector<std::array<double, 3>> points() const { return _points; };
   std::vector<int> unused() const { return unused_ids; };
 
-  auto begin() { return _child_nodes.begin(); }
-  auto end() { return _child_nodes.end(); }
-
 private:
   int _size;
   int _max_depth;

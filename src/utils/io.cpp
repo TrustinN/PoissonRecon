@@ -34,7 +34,8 @@ std::ostream &operator<<(std::ostream &ofs, const std::array<Node *, 8> &a) {
 
 std::ostream &operator<<(std::ostream &ofs, const Node &n) {
   std::string indent(2 * n.depth, ' ');
-  ofs << indent << "Node {" << std::endl;
+  std::string label = (n.is_leaf ? "Leaf" : "Branch");
+  ofs << indent << label << "[" << n.num_points << "] {" << std::endl;
   ofs << indent << "  " << "center: " << n.center << "," << std::endl;
   ofs << indent << "  " << "width: " << n.width << "," << std::endl;
   if (n.is_leaf) {
