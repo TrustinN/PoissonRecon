@@ -2,8 +2,8 @@
 #include "utils/linalg.hpp"
 
 RiemannianGraph::RiemannianGraph(
-    const std::vector<std::array<double, 3>> &vertices, const Octree &octree,
-    int k) {
+    const std::vector<std::array<double, 3>> &vertices,
+    const Octree<Node> &octree, int k) {
 
   _max_edge = -std::numeric_limits<double>::infinity();
   _adj_list = std::vector<std::set<int>>(vertices.size());

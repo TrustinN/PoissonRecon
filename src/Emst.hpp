@@ -10,7 +10,7 @@ class Emst {
   int _num_edges;
 
 public:
-  Emst(const std::vector<std::array<double, 3>> vertices, Octree &octree);
+  Emst(const std::vector<std::array<double, 3>> vertices, Octree<Node> &octree);
   int num_edges() { return _num_edges; };
   std::vector<std::set<int>> adj_list() { return _adj_list; }
 };

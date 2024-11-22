@@ -11,7 +11,7 @@ int main() {
   // std::cout << normals.normals() << std::endl;
   std::vector<std::array<double, 3>> vertices = {
       {0.0, 0.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
-  Octree octree(vertices);
+  Octree<Node> octree(vertices);
   std::cout << octree << std::endl;
 
   return 0;

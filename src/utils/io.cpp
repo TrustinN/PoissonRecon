@@ -46,7 +46,7 @@ std::ostream &operator<<(std::ostream &ofs, const Node &n) {
   return ofs;
 };
 
-std::ostream &operator<<(std::ostream &ofs, const Octree &o) {
+std::ostream &operator<<(std::ostream &ofs, const Octree<Node> &o) {
   ofs << "Octree: [" << std::endl;
   ofs << *o.root() << std::endl;
   ofs << "]";

@@ -3,7 +3,8 @@
 #include "utils/linalg.hpp" // Distance function
 #include <queue>
 
-Emst::Emst(const std::vector<std::array<double, 3>> vertices, Octree &octree)
+Emst::Emst(const std::vector<std::array<double, 3>> vertices,
+           Octree<Node> &octree)
     : _num_edges(0) {
 
   _adj_list = std::vector<std::set<int>>(vertices.size());

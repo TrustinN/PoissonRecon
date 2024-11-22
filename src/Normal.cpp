@@ -87,7 +87,7 @@ NormalApproximations::NormalApproximations(
     std::vector<std::array<double, 3>> vertices) {
   _vertices = vertices;
 
-  Octree octree(vertices);
+  Octree<Node> octree(vertices);
   RiemannianGraph rg = RiemannianGraph(vertices, octree, 15);
   std::vector<std::set<int>> rg_adj_list = rg.adj_list();
 
