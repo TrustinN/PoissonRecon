@@ -140,7 +140,7 @@ TEST(OctreeDelete, Basic) {
   ASSERT_EQ(tree.unused().size(), 1);
 };
 
-TEST(OctreeDelete, FullDelete) {
+TEST(OctreeDelete, FullDeleteBasic) {
 
   //           .----.----. (1,1,1)
   //          /|   /|   / |
@@ -164,18 +164,46 @@ TEST(OctreeDelete, FullDelete) {
   ASSERT_EQ(tree.root()->info.points.size(), 0);
 };
 
+TEST(OctreeDelete, FullDeleteRandomized) {
+
+  //           .----.----. (1,1,1)
+  //          /|   /|   / |
+  // (0,1,0) .----.----.__.
+  //         |/|  | |  | /|
+  //         .----.----. -.
+  //         |/   |/   | /
+  //         .----.----.
+  //        0           (1,0,0)
+
+  std::vector<std::array<double, 3>> points = rand_points(0, 100, 1000);
+  Octree tree(points);
+  std::set<int> expected_del_ids;
+  std::set<int> actual_del_ids;
+
+  for (int idx = 0; idx < 1000; idx++) {
+    tree.Delete(tree.points()[idx]);
+    expected_del_ids.insert(idx);
+    actual_del_ids.insert(tree.unused().back());
+  }
+
+  ASSERT_EQ(tree.size(), 0);
+  ASSERT_EQ(tree.root()->is_leaf, true);
+  ASSERT_EQ(tree.root()->info.points.size(), 0);
+  ASSERT_EQ(expected_del_ids, actual_del_ids);
+};
+
 TEST(OctreeDelete, Random) {
   std::vector<std::array<double, 3>> points = rand_points(0, 100, 1000);
   Octree tree(points);
   std::vector<int> indices = rand_ints(0, 200, 1000);
+  std::set<int> expected_del_ids;
+  std::set<int> actual_del_ids;
 
   for (int idx : indices) {
     tree.Delete(tree.points()[idx]);
+    expected_del_ids.insert(idx);
+    actual_del_ids.insert(tree.unused().back());
   }
-
-  std::set<int> expected_del_ids = std::set(indices.begin(), indices.end());
-  std::set<int> actual_del_ids =
-      std::set(tree.unused().begin(), tree.unused().end());
 
   ASSERT_EQ(expected_del_ids, actual_del_ids);
 }

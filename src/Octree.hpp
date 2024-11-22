@@ -64,7 +64,7 @@ private:
   std::vector<Node *> _child_nodes;
 
   Node *build(std::vector<id_point> points, std::array<double, 3> center,
-              double width, int depth, int max_depth, int min_depth);
+              double width, int depth);
 
   int Delete(Node *node, std::array<double, 3> p);
 };
