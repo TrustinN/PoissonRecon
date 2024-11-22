@@ -17,7 +17,10 @@ struct basisF {
 class pOctree : Octree {
 public:
   pOctree() : Octree() {};
-  pOctree(std::vector<std::array<double, 3>> points, int max_depth = 8);
+  pOctree(std::vector<std::array<double, 3>> points, int depth = 8)
+      : Octree(points, depth, depth) {};
+
+private:
 };
 
 #endif

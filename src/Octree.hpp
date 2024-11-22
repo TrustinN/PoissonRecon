@@ -39,7 +39,8 @@ struct Node {
 class Octree {
 public:
   Octree() : _size(0), _root(nullptr) {};
-  Octree(std::vector<std::array<double, 3>> points, int max_depth = 8);
+  Octree(std::vector<std::array<double, 3>> points, int max_depth = 8,
+         int min_depth = -1);
 
   std::vector<int> kNearestNeighbors(const std::array<double, 3> query,
                                      int k = 1) const;
@@ -56,6 +57,7 @@ public:
 private:
   int _size;
   int _max_depth;
+  int _min_depth;
   Node *_root;
   std::vector<std::array<double, 3>> _points;
   std::vector<int>
@@ -65,7 +67,7 @@ private:
   std::vector<Node *> _child_nodes;
 
   Node *build(std::vector<id_point> points, std::array<double, 3> center,
-              double width, int depth, int max_depth);
+              double width, int depth, int max_depth, int min_depth);
 
   int Delete(Node *node, std::array<double, 3> p);
 };

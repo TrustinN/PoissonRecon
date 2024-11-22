@@ -29,9 +29,14 @@ Node::~Node() {
 };
 
 Node *Octree::build(std::vector<id_point> points, std::array<double, 3> center,
-                    double width, int depth, int max_depth) {
+                    double width, int depth, int max_depth, int min_depth) {
 
-  bool is_leaf = depth == max_depth || points.size() <= 1;
+  bool is_leaf;
+  if (min_depth == -1) {
+    is_leaf = depth == max_depth || points.size() <= 1;
+  } else {
+    is_leaf = (depth == min_depth && depth == max_depth) || points.size() == 0;
+  };
   Node *ret_node = new Node(points, center, width, is_leaf, depth);
   _max_depth = std::max(depth, _max_depth);
 
@@ -64,7 +69,8 @@ Node *Octree::build(std::vector<id_point> points, std::array<double, 3> center,
       n_center[1] += ((i >> 1) % 2 == 0) ? -c_off : c_off;
       n_center[2] += ((i >> 2) % 2 == 0) ? -c_off : c_off;
 
-      n_child[i] = build(sub_d[i], n_center, n_width, depth + 1, max_depth);
+      n_child[i] =
+          build(sub_d[i], n_center, n_width, depth + 1, max_depth, min_depth);
     };
   } else {
     _child_nodes.push_back(ret_node);
@@ -73,8 +79,10 @@ Node *Octree::build(std::vector<id_point> points, std::array<double, 3> center,
   return ret_node;
 };
 
-Octree::Octree(std::vector<std::array<double, 3>> points, int max_depth)
-    : _size(points.size()), _points(points), _max_depth(0) {
+Octree::Octree(std::vector<std::array<double, 3>> points, int max_depth,
+               int min_depth)
+    : _size(points.size()), _points(points), _max_depth(0),
+      _min_depth(min_depth) {
 
   if (points.size() > 0) {
 
