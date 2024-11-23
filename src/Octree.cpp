@@ -1,8 +1,53 @@
 #include "Octree.hpp"
 #include "utils/linalg.hpp"
 #include <array>
+#include <cassert>
+#include <iostream>
 #include <queue>
 #include <vector>
+
+// -------------------------------------------------------------------------------------------------//
+// Helpers
+// -------------------------------------------------------------------------------------------------//
+
+// maps the current point to which child node it belongs
+int node_index_map(Node *node, const std::array<double, 3> &p) {
+  std::array<double, 3> diff = p - node->center;
+  diff[0] = (diff[0] > 0) ? 1 : 0;
+  diff[1] = (diff[1] > 0) ? 2 : 0;
+  diff[2] = (diff[2] > 0) ? 4 : 0;
+
+  return diff[0] + diff[1] + diff[2];
+}
+
+std::vector<std::array<double, 3>> split_centers(Node *node) {
+
+  double n_width = node->width / 2.0;
+  std::array<double, 3> &center = node->center;
+
+  std::vector<std::array<double, 3>> n_centers;
+
+  for (int i = 0; i < 8; i++) {
+    std::array<double, 3> n_center = center;
+    n_center[0] += (i % 2 == 0) ? -n_width : n_width;
+    n_center[1] += ((i >> 1) % 2 == 0) ? -n_width : n_width;
+    n_center[2] += ((i >> 2) % 2 == 0) ? -n_width : n_width;
+    n_centers.push_back(n_center);
+  };
+
+  return n_centers;
+};
+
+std::array<std::vector<id_point>, 8>
+partition_points(Node *node, const std::vector<id_point> &points) {
+  // set where each point goes
+  std::array<std::vector<id_point>, 8> point_partition;
+  for (const auto &p : points) {
+    int idx = node_index_map(node, std::get<1>(p));
+    point_partition[idx].push_back(p);
+  };
+  return point_partition;
+};
 
 // -------------------------------------------------------------------------------------------------//
 // Implementation
@@ -28,6 +73,38 @@ Node::~Node() {
   }
 };
 
+void Node::Insert(const std::vector<id_point> &points) {
+  assert(this->is_leaf);
+  this->info.points.insert(this->info.points.end(), points.begin(),
+                           points.end());
+}
+
+void Node::subdivide() {
+  assert(this->is_leaf);
+  this->is_leaf = false;
+
+  // get current points
+  std::vector<id_point> points = std::move(this->info.points);
+
+  // switch union type
+  this->info.points.~vector();
+  this->info.children = std::array<Node *, 8>{nullptr};
+
+  std::array<std::vector<id_point>, 8> point_partition =
+      partition_points(this, points);
+  std::vector<std::array<double, 3>> n_centers = split_centers(this);
+
+  // populate children as Node pointers
+  for (int i = 0; i < 8; i++) {
+    this->info.children[i] = new Node(point_partition[i], n_centers[i],
+                                      width / 2, true, this->depth + 1);
+  };
+};
+
+// -------------------------------------------------------------------------------------------------//
+// Tree Implementation
+// -------------------------------------------------------------------------------------------------//
+
 Node *Octree::build(std::vector<id_point> points, std::array<double, 3> center,
                     double width, int depth) {
 
@@ -43,35 +120,18 @@ Node *Octree::build(std::vector<id_point> points, std::array<double, 3> center,
   if (!is_leaf) {
 
     // Figure out which points go in which subdivision
-    std::vector<std::vector<id_point>> sub_d(8);
-    for (const auto &p : points) {
-      std::array<double, 3> cur_p = std::get<1>(p);
-      std::array<double, 3> diff = {cur_p[0] - center[0], cur_p[1] - center[1],
-                                    cur_p[2] - center[2]};
-      diff[0] = (diff[0] > 0) ? 1 : 0;
-      diff[1] = (diff[1] > 0) ? 2 : 0;
-      diff[2] = (diff[2] > 0) ? 4 : 0;
-
-      int idx = diff[0] + diff[1] + diff[2];
-
-      sub_d[idx].push_back(p);
-    };
+    std::array<std::vector<id_point>, 8> sub_d =
+        partition_points(ret_node, points);
 
     // Make pointers to subdivision nodes
     std::array<Node *, 8> &n_child = ret_node->info.children;
-    double n_width = width / 2.0;
+    std::vector<std::array<double, 3>> n_centers = split_centers(ret_node);
 
     for (int i = 0; i < 8; i++) {
-
-      std::array<double, 3> n_center = center;
-      n_center[0] += (i % 2 == 0) ? -n_width : n_width;
-      n_center[1] += ((i >> 1) % 2 == 0) ? -n_width : n_width;
-      n_center[2] += ((i >> 2) % 2 == 0) ? -n_width : n_width;
-
-      n_child[i] = build(sub_d[i], n_center, n_width, depth + 1);
+      n_child[i] = build(sub_d[i], n_centers[i], width / 2.0, depth + 1);
     };
   } else {
-    // _child_nodes.push_back(ret_node);
+    _base_nodes.push_back(ret_node);
   };
 
   return ret_node;
@@ -108,7 +168,9 @@ Octree::Octree(std::vector<std::array<double, 3>> points, int max_depth,
       id_points[i] = std::make_tuple(i, points[i]);
     }
 
-    this->_root = Octree::build(id_points, center, width / 2, 1);
+    // expand the bounds by 4 * smallest node width
+    double pad = width / std::pow(2, max_depth - 2);
+    this->_root = Octree::build(id_points, center, width / 2 + pad, 1);
 
   } else {
     this->_root = nullptr;
@@ -204,15 +266,7 @@ int Octree::Delete(Node *node, std::array<double, 3> p) {
 
   } else {
     // find out which child node the point is in
-    std::array<double, 3> &center = node->center;
-    std::array<double, 3> diff = {p[0] - center[0], p[1] - center[1],
-                                  p[2] - center[2]};
-
-    diff[0] = (diff[0] > 0) ? 1 : 0;
-    diff[1] = (diff[1] > 0) ? 2 : 0;
-    diff[2] = (diff[2] > 0) ? 4 : 0;
-
-    int idx = diff[0] + diff[1] + diff[2];
+    int idx = node_index_map(node, p);
     Node *next_node = node->info.children[idx];
     del_id = Delete(next_node, p);
 

@@ -2,6 +2,7 @@
 #define OCTREE_HPP
 
 #include <array>
+#include <iostream>
 #include <vector>
 
 using id_point = std::pair<int, std::array<double, 3>>;
@@ -28,6 +29,9 @@ struct Node {
        bool is_leaf, int depth);
   ~Node();
 
+  void Insert(const std::vector<id_point> &points);
+  void subdivide();
+
   double width;
   std::array<double, 3> center;
   bool is_leaf;
@@ -44,24 +48,29 @@ public:
 
   std::vector<int> kNearestNeighbors(const std::array<double, 3> query,
                                      int k = 1) const;
+  template <bool refine = false>
+  void Insert(const std::vector<std::array<double, 3>> &points);
+  template <bool refine = false>
+  void Insert(Node *node, const std::vector<id_point> &points);
   void Delete(std::array<double, 3> p);
 
   int size() const { return _size; };
   Node *root() const { return _root; };
   std::vector<std::array<double, 3>> points() const { return _points; };
   std::vector<int> unused() const { return unused_ids; };
+  std::vector<Node *> base_nodes() const { return _base_nodes; };
 
-private:
+protected:
   int _size;
   int _max_depth;
   int _min_depth;
+  std::vector<Node *> _base_nodes;
   Node *_root;
   std::vector<std::array<double, 3>> _points;
   std::vector<int>
       unused_ids; // When we delete, deleted point's ids will go here. This way,
                   // we don't need to resize our _points, when we insert a new
                   // point, we can just replace the value in that position
-  std::vector<Node *> _child_nodes;
 
   Node *build(std::vector<id_point> points, std::array<double, 3> center,
               double width, int depth);
@@ -69,4 +78,63 @@ private:
   int Delete(Node *node, std::array<double, 3> p);
 };
 
+std::vector<std::array<double, 3>> split_centers(Node *node);
+int node_index_map(Node *node, const std::array<double, 3> &p);
+std::array<std::vector<id_point>, 8>
+partition_points(Node *node, const std::vector<id_point> &points);
+
+template <bool refine>
+void Octree::Insert(Node *node, const std::vector<id_point> &points) {
+
+  if (points.size() > 0) {
+    if (!refine) {
+      node->num_points += points.size();
+      // we need to somehow handle adding these leaf nodes to the _base_nodes
+      // for now, not important
+    }
+
+    if (node->is_leaf) {
+      if (node->depth >= _min_depth) {
+        if (!refine) {
+          node->Insert(points);
+        }
+      } else {
+        // we must increase the depth
+        std::array<std::vector<id_point>, 8> point_partition =
+            partition_points(node, points);
+
+        node->subdivide();
+        for (int i = 0; i < 8; i++) {
+          Octree::Insert<refine>(node->info.children[i], point_partition[i]);
+        };
+      };
+    } else {
+
+      // Figure out which points go in which subdivision
+      std::array<std::vector<id_point>, 8> point_partition =
+          partition_points(node, points);
+
+      for (int i = 0; i < 8; i++) {
+        Octree::Insert<refine>(node->info.children[i], point_partition[i]);
+      }
+    }
+  }
+};
+
+template <bool refine>
+void Octree::Insert(const std::vector<std::array<double, 3>> &points) {
+  // Assumes that we do not need to expand Octree bounds
+  std::vector<id_point> id_points(points.size());
+  int start_id = _points.size();
+  for (int i = 0; i < points.size(); i++) {
+    id_points[i] = {start_id + i, points[i]};
+  }
+  this->Insert<refine>(_root, id_points);
+
+  if (!refine) {
+    // update points
+    _points.insert(_points.end(), points.begin(), points.end());
+    _size += points.size();
+  }
+};
 #endif

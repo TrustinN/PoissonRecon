@@ -3,24 +3,10 @@
 
 #include "Octree.hpp"
 
-// 1-D basis function
-struct basisF1 {
-  static double operator()(double p);
-};
-
-// assigns a weight over the range -1 < x < 1 for
-// x, y, z
-struct basisF {
-  double operator()(const std::array<double, 3> &p);
-};
-
-class pOctree : Octree {
+class pOctree : public Octree {
 public:
   pOctree() : Octree() {};
-  pOctree(std::vector<std::array<double, 3>> points, int depth = 8)
-      : Octree(points, depth, depth) {};
-
-private:
+  pOctree(std::vector<std::array<double, 3>> points, int depth = 8);
 };
 
 #endif
