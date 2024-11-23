@@ -2,7 +2,6 @@
 #include "utils/linalg.hpp"
 #include <array>
 #include <cassert>
-#include <iostream>
 #include <queue>
 #include <vector>
 

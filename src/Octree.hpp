@@ -2,7 +2,6 @@
 #define OCTREE_HPP
 
 #include <array>
-#include <iostream>
 #include <vector>
 
 using id_point = std::pair<int, std::array<double, 3>>;
@@ -38,6 +37,10 @@ struct Node {
   int depth;
   int num_points;
   NodeInfo info;
+
+  // not native to octree implementation
+  // too lazy to extend from base class
+  std::array<double, 3> normal = {0.0, 0.0, 0.0};
 };
 
 class Octree {

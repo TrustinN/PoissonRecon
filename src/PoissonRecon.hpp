@@ -7,16 +7,19 @@
 
 class PoissonRecon {
 public:
-  PoissonRecon();
+  PoissonRecon(const std::vector<std::array<double, 3>> &points,
+               const std::vector<std::array<double, 3>> &normals,
+               const std::vector<std::array<double, 3>> &inward_normals,
+               int depth = 8);
+
+  pOctree octree() { return _octree; };
 
 private:
+  int _depth;
   std::vector<std::array<double, 3>> _points;
+  std::vector<std::array<double, 3>> _normals;
   std::vector<std::array<double, 3>> _inward_normals;
   pOctree _octree;
-
-  // for every node, assign to it a vector defining the normal
-  // centered at _center
-  std::vector<std::array<double, 3>> _v_field;
 };
 
 #endif

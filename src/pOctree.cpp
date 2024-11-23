@@ -1,7 +1,63 @@
 #include "pOctree.hpp"
+#include "Octree.hpp"
 #include "utils/linalg.hpp"
+#include <iostream>
 
 #include <set>
+
+// -------------------------------------------------------------------------------------------------//
+// Helper functions
+// -------------------------------------------------------------------------------------------------//
+
+Node *seek_node(Node *node, const std::array<double, 3> &p) {
+
+  Node *r_node = node;
+  while (!r_node->is_leaf) {
+    int idx = node_index_map(r_node, p);
+    r_node = r_node->info.children[idx];
+  };
+  return r_node;
+}
+
+std::vector<std::array<double, 3>> nearest_8(Node *node,
+                                             const std::array<double, 3> &p) {
+
+  std::array<double, 3> center = node->center;
+  double width = node->width;
+  double offset = 2 * width;
+  std::array<double, 3> diff = p - center;
+
+  std::vector<std::array<double, 3>> ret = {center};
+  // the cube containing the 8 interpolation nodes is defined by
+  // two nodes on the diagonal
+  //
+  // we already have one of the corner nodes which is the current node
+  // find the vector pointing to the other corner
+  diff[0] = (diff[0] > 0) ? offset : -offset;
+  diff[1] = (diff[1] > 0) ? offset : -offset;
+  diff[2] = (diff[2] > 0) ? offset : -offset;
+
+  std::array<double, 3> corner = center + diff;
+  ret.push_back(corner);
+
+  // Add the 8 node centers to the centerSet
+  for (int i = 0; i < 3; i++) {
+    // rotate between axis
+    std::array<double, 3> c_copy = std::array<double, 3>(center);
+    c_copy[i] += diff[i];
+    ret.push_back(c_copy);
+
+    std::array<double, 3> cor_copy = std::array<double, 3>(corner);
+    cor_copy[i] -= diff[i];
+    ret.push_back(cor_copy);
+  }
+
+  return ret;
+};
+
+// -------------------------------------------------------------------------------------------------//
+// Implementation
+// -------------------------------------------------------------------------------------------------//
 
 pOctree::pOctree(std::vector<std::array<double, 3>> points, int depth)
     : Octree(points, depth, depth) {
@@ -15,39 +71,13 @@ pOctree::pOctree(std::vector<std::array<double, 3>> points, int depth)
   std::set<std::array<double, 3>> curr_ctr_set;
 
   for (Node *node : _base_nodes) {
-    std::array<double, 3> center = node->center;
-    curr_ctr_set.insert(center);
-    double width = node->width;
-    double offset = 2 * width;
+    curr_ctr_set.insert(node->center);
 
     // compute 8 closest center nodes
     for (id_point p : node->info.points) {
-
-      // the cube containing the 8 interpolation nodes is defined by
-      // two nodes on the diagonal
-      //
-      // we already have one of the corner nodes which is the current node
-      // find the vector pointing to the other corner
-
-      std::array<double, 3> diff = std::get<1>(p) - center;
-      diff[0] = (diff[0] > 0) ? offset : -offset;
-      diff[1] = (diff[1] > 0) ? offset : -offset;
-      diff[2] = (diff[2] > 0) ? offset : -offset;
-
-      std::array<double, 3> corner = center + diff;
-      ins_ctr_set.insert(corner);
-
-      // Add the 8 node centers to the centerSet
-      for (int i = 0; i < 3; i++) {
-        // rotate between axis
-        std::array<double, 3> c_copy = std::array<double, 3>(center);
-        c_copy[i] += diff[i];
-        ins_ctr_set.insert(c_copy);
-
-        std::array<double, 3> cor_copy = std::array<double, 3>(corner);
-        cor_copy[i] -= diff[i];
-        ins_ctr_set.insert(cor_copy);
-      }
+      std::vector<std::array<double, 3>> n_centers =
+          nearest_8(node, std::get<1>(p));
+      ins_ctr_set.insert(n_centers.begin() + 1, n_centers.end());
     };
   }
 
@@ -60,4 +90,48 @@ pOctree::pOctree(std::vector<std::array<double, 3>> points, int depth)
   // insert nodes
   // set refine to be true to have a blank insert
   this->Insert<true>(diff);
+};
+
+void pOctree::AssignVecField(std::vector<std::array<double, 3>> normals) {
+  // a faster implementation would be to loop over the _base_nodes instead
+  for (int i = 0; i < _points.size(); i++) {
+    auto p = _points[i];
+
+    // find which node it is in
+    Node *cur_node = seek_node(_root, p);
+
+    // get interpolation node centers
+    std::vector<std::array<double, 3>> n_centers = nearest_8(cur_node, p);
+
+    // get interpolation nodes
+    std::vector<Node *> interp_nodes = {cur_node};
+    for (int j = 1; j < 8; j++) {
+      interp_nodes.push_back(seek_node(_root, n_centers[j]));
+    };
+
+    for (int k = 0; k < 8; k++) {
+      int prev_count = _field_centers.size();
+      _field_centers.insert(n_centers[k]);
+
+      if (_field_centers.size() > prev_count) {
+        _field_nodes.push_back(interp_nodes[k]);
+      }
+    }
+
+    // trilinear interpolation
+    for (Node *node : interp_nodes) {
+      // compute distances to center
+      std::array<double, 3> diff = p - node->center;
+      diff[0] = abs(diff[0]);
+      diff[1] = abs(diff[1]);
+      diff[2] = abs(diff[2]);
+
+      // invert distance by center distance
+      double dist = 2 * node->width;
+      double weight = ((dist - diff[0]) / dist) * ((dist - diff[1]) / dist) *
+                      ((dist - diff[2]) / dist);
+
+      node->normal = node->normal + weight * normals[i];
+    }
+  };
 };
