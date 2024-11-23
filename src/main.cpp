@@ -1,19 +1,25 @@
-#include "Normal.hpp"
-#include "PoissonRecon.hpp"
-#include "utils/sampling.hpp"
+#include "basis.hpp"
+#include "utils/io.hpp"
 #include <iostream>
 
+std::ostream &operator<<(std::ostream &os, const std::array<double, 27> &arr) {
+  std::string indent = std::string(3, ' ');
+  os << "[" << std::endl << indent << arr[0];
+
+  for (int i = 1; i < 27; i++) {
+    os << ", ";
+    if (i % 3 == 0) {
+      os << std::endl;
+    }
+    os << indent << arr[i];
+  };
+  return os << std::endl << "]";
+};
+
 int main() {
-
-  std::vector<std::array<double, 3>> points = sample_sphere(100, 3);
-
-  std::cout << "Computing normals" << std::endl;
-  NormalApproximations na(points);
-  std::cout << "Done!" << std::endl;
-
-  std::cout << "Reconstructing surface" << std::endl;
-  PoissonRecon poisson(points, na.normals(), na.inward_normals());
-  std::cout << "Done!" << std::endl;
-
+  intVField v_field;
+  std::cout << v_field.int_field_x << std::endl;
+  std::cout << v_field.int_field_y << std::endl;
+  std::cout << v_field.int_field_z << std::endl;
   return 0;
 }

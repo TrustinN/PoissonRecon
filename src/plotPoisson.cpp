@@ -18,15 +18,20 @@
 #include <vtkSmartPointer.h>
 #include <vtkVertexGlyphFilter.h>
 
-int main() {
-  // std::vector<std::array<double, 3>> vertices = sample_sphere(1000, 3);
-  std::vector<std::array<double, 3>> vertices = sample_box(10000, 1, 1, 1);
-  NormalApproximations na(vertices);
-  // std::vector<std::array<double, 3>> normals = na.normals();
+int main(int argc, char **argv) {
+  std::string obj = argv[1];
+  std::vector<std::array<double, 3>> vertices;
+  if (obj == "ball") {
+    vertices = sample_sphere(10000, 3);
+  } else if (obj == "box") {
+    vertices = sample_box(10000, 1.5, 2, 1);
+  }
 
-  PoissonRecon poisson(vertices, na.normals(), na.inward_normals(), 8);
+  NormalApproximations na(vertices);
+  PoissonRecon poisson(vertices, na.normals(), na.inward_normals(), 6);
   pOctree ot = poisson.octree();
 
+  // get the normal origin and normal vectors
   std::vector<Node *> field_nodes = ot.field_nodes();
 
   std::vector<std::array<double, 3>> field_vertices;
@@ -36,6 +41,8 @@ int main() {
     field_vertices.push_back(node->center);
     field_normals.push_back(node->normal);
   }
+
+  // plotting here
 
   vtkNew<vtkPoints> points;
   for (const auto &v : field_vertices) {
@@ -97,7 +104,7 @@ int main() {
 
   vtkNew<vtkActor> vertexActor;
   vertexActor->SetMapper(mapper);
-  vertexActor->GetProperty()->SetPointSize(3.3);
+  vertexActor->GetProperty()->SetPointSize(3.5);
   vertexActor->GetProperty()->SetSpecular(1.0);
   vertexActor->GetProperty()->SetSpecularPower(50.0);
 

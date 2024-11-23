@@ -18,8 +18,8 @@
 #include <vtkVertexGlyphFilter.h>
 
 int main() {
-  std::vector<std::array<double, 3>> vertices = sample_sphere(10000, 3);
-  // std::vector<std::array<double, 3>> vertices = sample_box(10000, 3, 3, 3);
+  // std::vector<std::array<double, 3>> vertices = sample_sphere(10000, 3);
+  std::vector<std::array<double, 3>> vertices = sample_box(10000, 1.5, 2, 1);
   NormalApproximations na(vertices);
   std::vector<std::array<double, 3>> normals = na.normals();
 
