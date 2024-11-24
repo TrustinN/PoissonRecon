@@ -13,6 +13,7 @@ public:
                int depth = 8);
 
   pOctree octree() { return _octree; };
+  std::vector<double> v() { return _v; };
 
 private:
   int _depth;
@@ -20,6 +21,11 @@ private:
   std::vector<std::array<double, 3>> _normals;
   std::vector<std::array<double, 3>> _inward_normals;
   pOctree _octree;
+
+  // v in the linear system to be solved
+  std::vector<double> _v;
+
+  // L in the linear system to be solved
 };
 
 #endif

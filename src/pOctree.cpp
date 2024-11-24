@@ -1,7 +1,6 @@
 #include "pOctree.hpp"
 #include "Octree.hpp"
 #include "utils/linalg.hpp"
-#include <iostream>
 
 #include <set>
 
@@ -50,6 +49,23 @@ std::vector<std::array<double, 3>> nearest_8(Node *node,
     std::array<double, 3> cor_copy = std::array<double, 3>(corner);
     cor_copy[i] -= diff[i];
     ret.push_back(cor_copy);
+  }
+
+  return ret;
+};
+
+// Compute the neighboring node centers of depth d
+std::vector<std::array<double, 3>> nearest_27(Node *node) {
+  std::vector<std::array<double, 3>> ret;
+  std::array<double, 3> offset = {-2 * node->width, 0, 2 * node->width};
+
+  for (int k = 0; k < 3; k++) {
+    for (int j = 0; j < 3; j++) {
+      for (int i = 0; i < 3; i++) {
+        std::array<double, 3> off = {offset[i], offset[j], offset[k]};
+        ret.push_back(node->center + off);
+      }
+    }
   }
 
   return ret;
@@ -135,3 +151,48 @@ void pOctree::AssignVecField(std::vector<std::array<double, 3>> normals) {
     }
   };
 };
+
+std::vector<Node *> pOctree::Neighbors(Node *node) {
+  std::vector<Node *> ret;
+  // start crawling down the tree, when it narrows sufficiently, we can split
+  // the search
+  Node *cur_node = _root;
+  double threshold = 4 * node->width;
+
+  while (true) {
+    int idx = node_index_map(cur_node, node->center);
+    Node *new_node = cur_node->info.children[idx];
+    std::array<double, 3> diff = new_node->center - node->center;
+    double dist = std::max(diff[0], std::max(diff[1], diff[2]));
+    if (new_node->width - dist < threshold) {
+      break;
+    }
+    cur_node = new_node;
+  };
+
+  // start the split search
+  std::vector<std::array<double, 3>> targets = nearest_27(node);
+  for (int i = 0; i < targets.size(); i++) {
+    // exclude center node
+    if (i != 13) {
+      Node *found = seek_node(cur_node, targets[i]);
+      if (found->depth == node->depth) {
+        ret.push_back(found);
+      }
+    }
+  }
+
+  return ret;
+};
+
+double pOctree::ExtractInnerProduct(Node *node) {
+  std::vector<Node *> neighbors = Neighbors(node);
+  double res;
+
+  // compute influence of neighbors on the current node
+  for (Node *n : neighbors) {
+    res += projection(_divergence_field, node, n);
+  }
+
+  return res;
+}

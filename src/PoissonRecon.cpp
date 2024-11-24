@@ -10,4 +10,9 @@ PoissonRecon::PoissonRecon(
 
   _octree = pOctree(points, depth);
   _octree.AssignVecField(normals);
+
+  // compute v
+  for (Node *node : _octree.field_nodes()) {
+    _v.push_back(_octree.ExtractInnerProduct(node));
+  }
 };

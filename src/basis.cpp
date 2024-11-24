@@ -1,10 +1,9 @@
 #include "basis.hpp"
 #include <cassert>
-#include <numeric>
 
 double basisF1::div_weight(double t) {
   double abs_t = abs(t);
-  if (abs_t >= 1.5) {
+  if (abs_t > 1.5) {
     return 0;
   } else if (0.5 <= abs_t && abs_t <= 1.5) {
     return std::pow(1.5 - abs_t, 4) / 8;
@@ -16,7 +15,7 @@ double basisF1::div_weight(double t) {
 
 double basisF1::div_weight_cmpl(double t) {
   double abs_t = abs(t);
-  if (abs_t >= 1.5) {
+  if (abs_t > 1.5) {
     return 0;
   } else if (0.5 < abs_t && abs_t <= 1.5) {
     return std::pow(1.5 - abs_t, 5) / 20;
@@ -29,9 +28,21 @@ double basisF1::div_weight_cmpl(double t) {
   return 0;
 };
 
+double basisF1::laplace_weight(double t) {
+  double abs_t = abs(t);
+  if (abs_t > 1.5) {
+    return 0;
+  } else if (0.5 < abs_t && abs_t <= 1.5) {
+    return 2 * t;
+  } else if (abs_t <= 0.5) {
+    return -2 * t;
+  };
+  return 0;
+}
+
 double basisF1::operator()(double p) {
   double abs_p = std::abs(p);
-  if (abs_p >= 1.5) {
+  if (abs_p > 1.5) {
     return 0;
   } else if (abs_p > .5) {
     return std::pow(1.5 - abs_p, 2) / 2;
@@ -45,14 +56,18 @@ double basisF::operator()(const std::array<double, 3> &p) {
          basisF1::operator()(p[2]);
 };
 
-intVField::intVField() {
+Field::Field() {
   for (int k = 0; k < 3; k++) {
     for (int j = 0; j < 3; j++) {
       for (int i = 0; i < 3; i++) {
-        int_field_x[i + 3 * j + 9 * k] = dw[i] * wc[j] * wc[k];
-        int_field_y[i + 3 * j + 9 * k] = dw[j] * wc[k] * wc[i];
-        int_field_z[i + 3 * j + 9 * k] = dw[k] * wc[i] * wc[j];
+        int idx = i + 3 * j + 9 * k;
+        int_field_x[idx] = dw[i] * wc[j] * wc[k];
+        int_field_y[idx] = dw[j] * wc[k] * wc[i];
+        int_field_z[idx] = dw[k] * wc[i] * wc[j];
       }
     }
   }
 };
+
+divVField::divVField() : Field() {};
+laplaceField::laplaceField() : Field() {};

@@ -47,6 +47,21 @@ std::ostream &operator<<(std::ostream &ofs, const Node &n) {
   return ofs;
 };
 
+std::ostream &operator<<(std::ostream &ofs, Node *n) {
+  std::string indent(2 * n->depth, ' ');
+  std::string label = (n->is_leaf ? "Leaf" : "Branch");
+  ofs << indent << label << "[" << n->num_points << "] {" << std::endl;
+  ofs << indent << "  " << "center: " << n->center << "," << std::endl;
+  ofs << indent << "  " << "width: " << n->width << "," << std::endl;
+  if (n->is_leaf) {
+    ofs << indent << "  " << n->info.points << std::endl;
+  } else {
+    ofs << indent << "  " << "children:" << n->info.children << std::endl;
+  }
+  ofs << indent << "}";
+  return ofs;
+};
+
 std::ostream &operator<<(std::ostream &ofs, const Octree &o) {
   ofs << "Octree: [" << std::endl;
   ofs << *o.root() << std::endl;

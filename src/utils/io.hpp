@@ -21,6 +21,7 @@ std::ostream &operator<<(std::ostream &ofs, const std::vector<T> &v) {
 }
 
 std::ostream &operator<<(std::ostream &ofs, const Node &n);
+std::ostream &operator<<(std::ostream &ofs, Node *n);
 std::ostream &operator<<(std::ostream &ofs, const Octree &o);
 
 #endif
