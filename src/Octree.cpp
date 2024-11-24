@@ -130,7 +130,8 @@ Node *Octree::build(std::vector<id_point> points, std::array<double, 3> center,
       n_child[i] = build(sub_d[i], n_centers[i], width / 2.0, depth + 1);
     };
   } else {
-    _base_nodes.push_back(ret_node);
+    ret_node->id = _leaf_nodes.size();
+    _leaf_nodes.push_back(ret_node);
   };
 
   return ret_node;
@@ -247,6 +248,7 @@ std::vector<int> Octree::kNearestNeighbors(const std::array<double, 3> query,
   return ret;
 };
 
+// Needs to be updated to keep track of _leaf_nodes
 int Octree::Delete(Node *node, std::array<double, 3> p) {
   int del_id = -1;
   if (node->is_leaf) {
@@ -293,6 +295,22 @@ void Octree::Delete(std::array<double, 3> p) {
   int del_id = Delete(_root, p);
   if (del_id != -1) {
     _size -= 1;
-    unused_ids.push_back(del_id);
+    _deleted_ids.push_back(del_id);
   };
 };
+
+void Octree::insert_as_leaf(Node *node) {
+  if (_unused_leaves.size() > 0) {
+    node->id = _unused_leaves.back();
+    _unused_leaves.pop_back();
+    _leaf_nodes[node->id] = node;
+  } else {
+    node->id = _leaf_nodes.size();
+    _leaf_nodes.push_back(node);
+  }
+}
+
+void Octree::remove_leaf(Node *node) {
+  _unused_leaves.push_back(node->id);
+  node->id = -1;
+}

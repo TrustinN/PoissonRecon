@@ -24,7 +24,7 @@ int main() {
   std::vector<std::array<double, 3>> vertices = sample_sphere(1000, 3);
   NormalApproximations na(vertices);
   PoissonRecon poisson(vertices, na.normals(), na.inward_normals());
-  std::cout << poisson.v() << std::endl;
+  // std::cout << poisson.v() << std::endl;
 
   return 0;
 }

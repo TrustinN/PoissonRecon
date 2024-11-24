@@ -2,7 +2,6 @@
 #define P_OCTREE_HPP
 
 #include "Octree.hpp"
-#include "basis.hpp"
 #include <set>
 
 class pOctree : public Octree {
@@ -25,7 +24,6 @@ public:
 private:
   std::set<std::array<double, 3>> _field_centers;
   std::vector<Node *> _field_nodes;
-  divVField _divergence_field;
 };
 
 #endif

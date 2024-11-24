@@ -84,38 +84,10 @@ struct Field {
 // array is divided into sections of 3 x 3 x 3 = 27
 // on intervals [-1.5, -0.5], [-0.5, 0.5], [0.5, 1.5]
 struct divVField : public Field {
-  double d1 = basisF1::div_weight(0.5);
-  double d2 = basisF1::div_weight(1.5);
-
-  // Integral from -1.5 to -0.5, -0.5 to 0.5, and 0.5 to 1.5 respectively
-  std::array<double, 3> dw = {d1 - d2, 0.0, d2 - d1};
-
-  double dc0 = basisF1::div_weight_cmpl(-0.5);
-  double dc1 = basisF1::div_weight_cmpl(0.5);
-  double dc2 = basisF1::div_weight_cmpl(1.5);
-
-  // Integral from -1.5 to -0.5, -0.5 to 0.5, and 0.5 to 1.5 respectively
-  std::array<double, 3> wc = {dc1 - dc2, dc1 - dc0, dc2 - dc1};
-
   divVField();
 };
 
 struct laplaceField : public Field {
-  double lw1 = basisF1::laplace_weight(-1.5);
-  double lw2 = basisF1::laplace_weight(-0.5);
-  double lw3 = basisF1::laplace_weight(0.5);
-  double lw4 = basisF1::laplace_weight(1.5);
-
-  // Integral from -1.5 to -0.5, -0.5 to 0.5, and 0.5 to 1.5 respectively
-  std::array<double, 3> dw = {lw2 - lw1, lw3 - lw2, lw4 - lw3};
-
-  double dc0 = basisF1::div_weight_cmpl(-0.5);
-  double dc1 = basisF1::div_weight_cmpl(0.5);
-  double dc2 = basisF1::div_weight_cmpl(1.5);
-
-  // Integral from -1.5 to -0.5, -0.5 to 0.5, and 0.5 to 1.5 respectively
-  std::array<double, 3> wc = {dc1 - dc2, dc1 - dc0, dc2 - dc1};
-
   laplaceField();
 };
 

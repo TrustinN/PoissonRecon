@@ -117,7 +117,7 @@ TEST(OctreeDelete, NoDelete) {
   tree.Delete({1, 2, 3});
 
   ASSERT_EQ(tree.size(), 4);
-  ASSERT_EQ(tree.unused().size(), 0);
+  ASSERT_EQ(tree.deleted_ids().size(), 0);
 };
 
 TEST(OctreeDelete, Basic) {
@@ -136,8 +136,8 @@ TEST(OctreeDelete, Basic) {
   Octree tree(points);
   tree.Delete({0, 0, 0});
   ASSERT_EQ(tree.size(), 3);
-  ASSERT_EQ(tree.unused()[0], 0);
-  ASSERT_EQ(tree.unused().size(), 1);
+  ASSERT_EQ(tree.deleted_ids()[0], 0);
+  ASSERT_EQ(tree.deleted_ids().size(), 1);
 };
 
 TEST(OctreeDelete, FullDeleteBasic) {
@@ -159,7 +159,7 @@ TEST(OctreeDelete, FullDeleteBasic) {
   tree.Delete({0, 1, 0});
   tree.Delete({1, 1, 1});
   ASSERT_EQ(tree.size(), 0);
-  ASSERT_EQ(tree.unused().size(), 4);
+  ASSERT_EQ(tree.deleted_ids().size(), 4);
   ASSERT_EQ(tree.root()->is_leaf, true);
   ASSERT_EQ(tree.root()->info.points.size(), 0);
 };
@@ -183,7 +183,7 @@ TEST(OctreeDelete, FullDeleteRandomized) {
   for (int idx = 0; idx < 1000; idx++) {
     tree.Delete(tree.points()[idx]);
     expected_del_ids.insert(idx);
-    actual_del_ids.insert(tree.unused().back());
+    actual_del_ids.insert(tree.deleted_ids().back());
   }
 
   ASSERT_EQ(tree.size(), 0);
@@ -202,7 +202,7 @@ TEST(OctreeDelete, Random) {
   for (int idx : indices) {
     tree.Delete(tree.points()[idx]);
     expected_del_ids.insert(idx);
-    actual_del_ids.insert(tree.unused().back());
+    actual_del_ids.insert(tree.deleted_ids().back());
   }
 
   ASSERT_EQ(expected_del_ids, actual_del_ids);

@@ -1,6 +1,9 @@
 #ifndef POISSON_RECON_HPP
 #define POISSON_RECON_HPP
 
+#include "Eigen/Dense"
+#include "Eigen/Sparse"
+#include "basis.hpp"
 #include "pOctree.hpp"
 #include <array>
 #include <vector>
@@ -13,7 +16,7 @@ public:
                int depth = 8);
 
   pOctree octree() { return _octree; };
-  std::vector<double> v() { return _v; };
+  Eigen::VectorXd v() { return _v; };
 
 private:
   int _depth;
@@ -21,11 +24,13 @@ private:
   std::vector<std::array<double, 3>> _normals;
   std::vector<std::array<double, 3>> _inward_normals;
   pOctree _octree;
+  divVField _divergence_field;
+  laplaceField _laplacian_field;
 
-  // v in the linear system to be solved
-  std::vector<double> _v;
-
-  // L in the linear system to be solved
+  // The system to be solved is _L * _x = _v
+  Eigen::SparseMatrix<double> _L;
+  Eigen::VectorXd _x;
+  Eigen::VectorXd _v;
 };
 
 #endif

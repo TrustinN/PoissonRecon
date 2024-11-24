@@ -1,6 +1,7 @@
 #include "pOctree.hpp"
 #include "Octree.hpp"
 #include "utils/linalg.hpp"
+#include <cassert>
 
 #include <set>
 
@@ -86,7 +87,7 @@ pOctree::pOctree(std::vector<std::array<double, 3>> points, int depth)
   // defines the centers we already have
   std::set<std::array<double, 3>> curr_ctr_set;
 
-  for (Node *node : _base_nodes) {
+  for (Node *node : _leaf_nodes) {
     curr_ctr_set.insert(node->center);
 
     // compute 8 closest center nodes
@@ -128,7 +129,6 @@ void pOctree::AssignVecField(std::vector<std::array<double, 3>> normals) {
     for (int k = 0; k < 8; k++) {
       int prev_count = _field_centers.size();
       _field_centers.insert(n_centers[k]);
-
       if (_field_centers.size() > prev_count) {
         _field_nodes.push_back(interp_nodes[k]);
       }
@@ -184,15 +184,3 @@ std::vector<Node *> pOctree::Neighbors(Node *node) {
 
   return ret;
 };
-
-double pOctree::ExtractInnerProduct(Node *node) {
-  std::vector<Node *> neighbors = Neighbors(node);
-  double res;
-
-  // compute influence of neighbors on the current node
-  for (Node *n : neighbors) {
-    res += projection(_divergence_field, node, n);
-  }
-
-  return res;
-}
