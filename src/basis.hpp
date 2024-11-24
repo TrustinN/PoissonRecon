@@ -35,12 +35,16 @@ struct basisF {
 
 struct Field {
   static const std::array<std::vector<int>, 27> loc_to_v_field_idx;
-  std::array<double, 3> dw;
-  std::array<double, 3> wc;
+  std::array<double, 3> dw{0};
+  std::array<double, 3> wc{0};
 
-  std::array<double, 27> int_field_x;
-  std::array<double, 27> int_field_y;
-  std::array<double, 27> int_field_z;
+  std::array<double, 27> int_field_x{0};
+  std::array<double, 27> int_field_y{0};
+  std::array<double, 27> int_field_z{0};
+
+  std::array<double, 27> _infl_x{0};
+  std::array<double, 27> _infl_y{0};
+  std::array<double, 27> _infl_z{0};
 };
 
 template <typename field_type> void initialize_field(field_type &f) {
@@ -52,6 +56,15 @@ template <typename field_type> void initialize_field(field_type &f) {
         f.int_field_y[idx] = f.dw[j] * f.wc[k] * f.wc[i];
         f.int_field_z[idx] = f.dw[k] * f.wc[i] * f.wc[j];
       }
+    }
+  }
+
+  for (int i = 0; i < 27; i++) {
+    std::vector<int> infl_areas = f.loc_to_v_field_idx[i];
+    for (int pos : infl_areas) {
+      f._infl_x[i] += f.int_field_x[pos];
+      f._infl_y[i] += f.int_field_y[pos];
+      f._infl_z[i] += f.int_field_z[pos];
     }
   }
 }
@@ -75,10 +88,7 @@ double projection(field_type field, Node *n1, Node *n2) {
   std::array<double, 3> center = n2->center;
 
   std::array<double, 3> diff = center - n1->center;
-  if (abs(diff[0]) > 1.5 * n1->width || abs(diff[1]) > 1.5 * n1->width ||
-      abs(diff[2]) > 1.5 * n1->width) {
-    return 0;
-  };
+
   std::array<double, 3> bit_map;
   if (diff[0] == 0) {
     bit_map[0] = 1;
@@ -97,15 +107,10 @@ double projection(field_type field, Node *n1, Node *n2) {
   }
 
   int idx = bit_map[0] + 3 * bit_map[1] + 9 * bit_map[2];
-  std::vector<int> infl = field.loc_to_v_field_idx[idx];
-  double infl_x;
-  double infl_y;
-  double infl_z;
-  for (int i : infl) {
-    infl_x += field.int_field_x[i];
-    infl_y += field.int_field_y[i];
-    infl_z += field.int_field_z[i];
-  }
+
+  double infl_x = field._infl_x[idx];
+  double infl_y = field._infl_y[idx];
+  double infl_z = field._infl_z[idx];
 
   return normal[0] * infl_x + normal[1] * infl_y + normal[2] * infl_z;
 };

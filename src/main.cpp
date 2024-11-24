@@ -20,23 +20,49 @@ std::ostream &operator<<(std::ostream &os, const std::array<double, 27> &arr) {
 };
 
 int main() {
-  // std::vector<std::array<double, 3>> vertices = sample_sphere(1000, 3);
-  // NormalApproximations na(vertices);
-  // PoissonRecon poisson(vertices, na.normals(), na.inward_normals());
-  // std::cout << poisson.v() << std::endl;
-  divVField dV;
-  std::cout << dV.int_field_x << std::endl;
-  std::cout << dV.int_field_y << std::endl;
-  std::cout << dV.int_field_z << std::endl;
-  std::cout << dV.wc << std::endl;
-  std::cout << dV.dw << std::endl;
+  std::vector<std::array<double, 3>> vertices = sample_sphere(1000, 3);
+  NormalApproximations na(vertices);
+  PoissonRecon poisson(vertices, na.normals(), na.inward_normals());
+
+  // divVField dV;
+  // std::string indent = std::string(40, '-');
+  // std::cout << indent << "X" << indent << std::endl;
+  // std::cout << dV.int_field_x << std::endl;
+  // std::cout << dV._infl_x << std::endl;
+  // std::cout << indent << "Y" << indent << std::endl;
+  // std::cout << dV.int_field_y << std::endl;
+  // std::cout << dV._infl_y << std::endl;
+  // std::cout << indent << "Z" << indent << std::endl;
+  // std::cout << dV.int_field_z << std::endl;
+  // std::cout << dV._infl_z << std::endl;
+  // std::cout << indent << "Integrals" << indent << std::endl;
+  // std::cout << dV.wc << std::endl;
+  // std::cout << dV.dw << std::endl;
+  // double totl = 0;
+  // for (double t : dV.int_field_x) {
+  //   totl += t;
+  // };
+  // std::cout << "sum: " << totl << std::endl;
   //
-  laplaceField lf;
-  std::cout << lf.int_field_x << std::endl;
-  std::cout << lf.int_field_y << std::endl;
-  std::cout << lf.int_field_z << std::endl;
-  std::cout << lf.wc << std::endl;
-  std::cout << lf.dw << std::endl;
+  // laplaceField lp;
+  // std::cout << indent << "X" << indent << std::endl;
+  // std::cout << lp.int_field_x << std::endl;
+  // std::cout << lp._infl_x << std::endl;
+  // std::cout << indent << "Y" << indent << std::endl;
+  // std::cout << lp.int_field_y << std::endl;
+  // std::cout << lp._infl_y << std::endl;
+  // std::cout << indent << "Z" << indent << std::endl;
+  // std::cout << lp.int_field_z << std::endl;
+  // std::cout << lp._infl_z << std::endl;
+  // std::cout << indent << "Integrals" << indent << std::endl;
+  // std::cout << lp.wc << std::endl;
+  // std::cout << lp.dw << std::endl;
+  //
+  // totl = 0;
+  // for (double t : lp.int_field_x) {
+  //   totl += t;
+  // };
+  // std::cout << "sum: " << totl << std::endl;
 
   return 0;
 }

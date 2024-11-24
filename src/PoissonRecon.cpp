@@ -49,7 +49,7 @@ PoissonRecon::PoissonRecon(
     std::vector<Node *> neighbors = _octree.Neighbors(node);
     for (Node *neighbor : neighbors) {
       res += projection(_divergence_field, node, neighbor);
-      double entry = projection(_laplacian_field, node, neighbor) / node->width;
+      double entry = projection(_laplacian_field, node, neighbor);
       triplet_list.push_back(
           Eigen::Triplet<double>(node->id, neighbor->id, entry));
     };
