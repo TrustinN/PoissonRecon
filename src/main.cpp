@@ -20,23 +20,23 @@ std::ostream &operator<<(std::ostream &os, const std::array<double, 27> &arr) {
 };
 
 int main() {
-  std::vector<std::array<double, 3>> vertices = sample_sphere(1000, 3);
-  NormalApproximations na(vertices);
-  PoissonRecon poisson(vertices, na.normals(), na.inward_normals());
+  // std::vector<std::array<double, 3>> vertices = sample_sphere(1000, 3);
+  // NormalApproximations na(vertices);
+  // PoissonRecon poisson(vertices, na.normals(), na.inward_normals());
   // std::cout << poisson.v() << std::endl;
-  // divVField dV;
-  // std::cout << dV.int_field_x << std::endl;
-  // std::cout << dV.int_field_y << std::endl;
-  // std::cout << dV.int_field_z << std::endl;
-  // std::cout << dV.wc << std::endl;
-  // std::cout << dV.dw << std::endl;
+  divVField dV;
+  std::cout << dV.int_field_x << std::endl;
+  std::cout << dV.int_field_y << std::endl;
+  std::cout << dV.int_field_z << std::endl;
+  std::cout << dV.wc << std::endl;
+  std::cout << dV.dw << std::endl;
   //
-  // laplaceField lf;
-  // std::cout << lf.int_field_x << std::endl;
-  // std::cout << lf.int_field_y << std::endl;
-  // std::cout << lf.int_field_z << std::endl;
-  // std::cout << lf.wc << std::endl;
-  // std::cout << lf.dw << std::endl;
+  laplaceField lf;
+  std::cout << lf.int_field_x << std::endl;
+  std::cout << lf.int_field_y << std::endl;
+  std::cout << lf.int_field_z << std::endl;
+  std::cout << lf.wc << std::endl;
+  std::cout << lf.dw << std::endl;
 
   return 0;
 }

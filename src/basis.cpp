@@ -1,53 +1,66 @@
 #include "basis.hpp"
 #include <cassert>
 
+constexpr static double MAX_OUTER_T = 1.5;
+constexpr static double MAX_INNER_T = 0.5;
+constexpr static double MIN_INNER_T = -0.5;
+constexpr static double MIN_OUTER_T = -1.5;
+constexpr static double EPSILON = 1e-10;
+
+double sign(double x) { return (x > double(0)) - (x < double(0)); };
+
 double basisF1::div_weight(double t) {
   double abs_t = abs(t);
-  if (abs_t > 1.5) {
+
+  if (abs_t > MAX_OUTER_T) {
     return 0;
-  } else if (0.5 <= abs_t && abs_t <= 1.5) {
-    return std::pow(1.5 - abs_t, 4) / 8;
-  } else if (abs_t < 0.5) {
-    return -.75 * std::pow(t, 2) + std::pow(t, 4) / 2;
+
+  } else if (abs_t > MAX_INNER_T) {
+    return std::pow(MAX_OUTER_T - abs_t, 4) / 8;
+
+  } else {
+    return (-MAX_OUTER_T * std::pow(t, 2) + std::pow(t, 4)) / 2;
   };
-  return 0;
 };
 
 double basisF1::div_weight_cmpl(double t) {
-  double abs_t = abs(t);
-  if (abs_t > 1.5) {
+  double abs_t = std::abs(t);
+
+  if (abs_t > MAX_OUTER_T) {
     return 0;
-  } else if (0.5 < abs_t && abs_t <= 1.5) {
-    return std::pow(1.5 - abs_t, 5) / 20;
-  } else if (abs_t <= 0.5) {
-    double t_3 = std::pow(t, 3);
-    double t_5 = std::pow(t, 5);
-    double res = 0.5625 * t - .5 * t_3 + t_5 / 5;
-    return res;
+
+  } else if (abs_t > MAX_INNER_T) {
+    return -sign(t) * std::pow(MAX_OUTER_T - abs_t, 5) / 20;
+
+  } else {
+    return 0.5625 * t - std::pow(t, 3) / 2 + std::pow(t, 5) / 5;
   };
-  return 0;
 };
 
 double basisF1::laplace_weight(double t) {
-  double abs_t = abs(t);
-  if (abs_t > 1.5) {
+  double abs_t = std::abs(t);
+  if (abs_t > MAX_OUTER_T) {
     return 0;
-  } else if (0.5 < abs_t && abs_t <= 1.5) {
-    return 2 * t;
-  } else if (abs_t <= 0.5) {
-    return -2 * t;
-  };
-  return 0;
+
+  } else if (abs_t > MAX_INNER_T) {
+    return -sign(t) * std::pow(MAX_OUTER_T - abs_t, 3) / 6;
+
+  } else {
+    return 2 * std::pow(t, 3) / 3 - MAX_OUTER_T * t;
+  }
 }
 
-double basisF1::operator()(double p) {
-  double abs_p = std::abs(p);
-  if (abs_p > 1.5) {
+double basisF1::operator()(double t) {
+  double abs_t = std::abs(t);
+
+  if (abs_t > MAX_OUTER_T) {
     return 0;
-  } else if (abs_p > .5) {
-    return std::pow(1.5 - abs_p, 2) / 2;
+
+  } else if (abs_t > MAX_INNER_T) {
+    return std::pow(MAX_OUTER_T - abs_t, 2) / 2;
+
   } else {
-    return .75 - std::pow(p, 2);
+    return MAX_OUTER_T / 2 - std::pow(t, 2);
   };
 }
 
@@ -91,37 +104,35 @@ const std::array<std::vector<int>, 27> Field::loc_to_v_field_idx = {
     std::vector<int>{26},
 };
 
+double eval_integral(double F(double d), double a, double b,
+                     double precision = EPSILON) {
+  return F(b - precision) - F(a + precision);
+}
+
 divVField::divVField() {
-
-  double d1 = basisF1::div_weight(0.5);
-  double d2 = basisF1::div_weight(1.5);
+  // Integral from -1.5 to -0.5, -0.5 to 0.5, and 0.5 to 1.5 respectively
+  dw = {eval_integral(basisF1::div_weight, MIN_OUTER_T, MIN_INNER_T),
+        eval_integral(basisF1::div_weight, MIN_INNER_T, MAX_INNER_T),
+        eval_integral(basisF1::div_weight, MAX_INNER_T, MAX_OUTER_T)};
 
   // Integral from -1.5 to -0.5, -0.5 to 0.5, and 0.5 to 1.5 respectively
-  dw = {d1 - d2, 0.0, d2 - d1};
+  wc = {eval_integral(basisF1::div_weight_cmpl, MIN_OUTER_T, MIN_INNER_T),
+        eval_integral(basisF1::div_weight_cmpl, MIN_INNER_T, MAX_INNER_T),
+        eval_integral(basisF1::div_weight_cmpl, MAX_INNER_T, MAX_OUTER_T)};
 
-  double dc0 = basisF1::div_weight_cmpl(-0.5);
-  double dc1 = basisF1::div_weight_cmpl(0.5);
-  double dc2 = basisF1::div_weight_cmpl(1.5);
-
-  // Integral from -1.5 to -0.5, -0.5 to 0.5, and 0.5 to 1.5 respectively
-  wc = {dc1 - dc2, dc1 - dc0, dc2 - dc1};
   initialize_field(*this);
 };
 
 laplaceField::laplaceField() : Field() {
-  double lw1 = basisF1::laplace_weight(-1.5);
-  double lw2 = basisF1::laplace_weight(-0.5);
-  double lw3 = basisF1::laplace_weight(0.5);
-  double lw4 = basisF1::laplace_weight(1.5);
+  // Integral from -1.5 to -0.5, -0.5 to 0.5, and 0.5 to 1.5 respectively
+  dw = {eval_integral(basisF1::laplace_weight, MIN_OUTER_T, MIN_INNER_T),
+        eval_integral(basisF1::laplace_weight, MIN_INNER_T, MAX_INNER_T),
+        eval_integral(basisF1::laplace_weight, MAX_INNER_T, MAX_OUTER_T)};
 
   // Integral from -1.5 to -0.5, -0.5 to 0.5, and 0.5 to 1.5 respectively
-  dw = {lw2 - lw1, lw3 - lw2, lw4 - lw3};
+  wc = {eval_integral(basisF1::div_weight_cmpl, MIN_OUTER_T, MIN_INNER_T),
+        eval_integral(basisF1::div_weight_cmpl, MIN_INNER_T, MAX_INNER_T),
+        eval_integral(basisF1::div_weight_cmpl, MAX_INNER_T, MAX_OUTER_T)};
 
-  double dc0 = basisF1::div_weight_cmpl(-0.5);
-  double dc1 = basisF1::div_weight_cmpl(0.5);
-  double dc2 = basisF1::div_weight_cmpl(1.5);
-
-  // Integral from -1.5 to -0.5, -0.5 to 0.5, and 0.5 to 1.5 respectively
-  wc = {dc1 - dc2, dc1 - dc0, dc2 - dc1};
   initialize_field(*this);
 };

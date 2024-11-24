@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.29.3)
+cmake_minimum_required(VERSION 3.31.0)
 
 project(
   "PoissonRecon"
@@ -10,6 +10,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_EXPORT_COMPILE_COMMANDS True)
 
+cmake_policy(SET CMP0167 NEW)
+
+# find_package(Boost REQUIRED)
 find_package(VTK REQUIRED)
 set(EIGEN_DIR "${CMAKE_SOURCE_DIR}/third_party/eigen")
 include_directories(${EIGEN_DIR})

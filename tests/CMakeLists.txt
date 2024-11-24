@@ -1,11 +1,3 @@
-cmake_minimum_required(VERSION 3.29.3)
-project(OctreeTests)
-
-# GoogleTest requires at least C++14
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
 include(FetchContent)
 FetchContent_Declare(
   googletest
