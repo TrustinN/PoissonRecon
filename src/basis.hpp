@@ -34,42 +34,7 @@ struct basisF {
 };
 
 struct Field {
-  std::array<std::vector<int>, 27> loc_to_v_field_idx = {
-      // first level
-      std::vector<int>{0},
-      std::vector<int>{0, 1, 2},
-      std::vector<int>{2},
-      std::vector<int>{0, 3, 6},
-      std::vector<int>{0, 1, 2, 3, 4, 5, 6, 7, 8},
-      std::vector<int>{2, 5, 8},
-      std::vector<int>{6},
-      std::vector<int>{6, 7, 8},
-      std::vector<int>{8},
-
-      // second level
-      std::vector<int>{0, 9, 18},
-      std::vector<int>{0, 1, 2, 9, 10, 11, 18, 19, 20},
-      std::vector<int>{2, 11, 20},
-      std::vector<int>{0, 3, 6, 9, 12, 15, 18, 21, 24},
-      std::vector<int>{13},
-      std::vector<int>{2, 5, 8, 11, 14, 17, 20, 23, 26},
-      std::vector<int>{6, 15, 24},
-      std::vector<int>{6, 7, 8, 15, 16, 17, 24, 25, 26},
-      std::vector<int>{8, 17, 26},
-
-      // third level
-      std::vector<int>{18},
-      std::vector<int>{18, 19, 20},
-      std::vector<int>{20},
-      std::vector<int>{18, 21, 24},
-      std::vector<int>{18, 19, 20, 21, 22, 23, 24, 25, 26},
-      std::vector<int>{20, 23, 26},
-      std::vector<int>{24},
-      std::vector<int>{24, 25, 26},
-      std::vector<int>{26},
-
-  };
-  Field();
+  static const std::array<std::vector<int>, 27> loc_to_v_field_idx;
   std::array<double, 3> dw;
   std::array<double, 3> wc;
 
@@ -77,6 +42,19 @@ struct Field {
   std::array<double, 27> int_field_y;
   std::array<double, 27> int_field_z;
 };
+
+template <typename field_type> void initialize_field(field_type &f) {
+  for (int k = 0; k < 3; k++) {
+    for (int j = 0; j < 3; j++) {
+      for (int i = 0; i < 3; i++) {
+        int idx = i + 3 * j + 9 * k;
+        f.int_field_x[idx] = f.dw[i] * f.wc[j] * f.wc[k];
+        f.int_field_y[idx] = f.dw[j] * f.wc[k] * f.wc[i];
+        f.int_field_z[idx] = f.dw[k] * f.wc[i] * f.wc[j];
+      }
+    }
+  }
+}
 
 // We output the integral of dF1(t_x)/dt_x * F1(t_x) * (F1(t_y) * F1(t_z))^2 wrt
 // t_x, t_y, t_z

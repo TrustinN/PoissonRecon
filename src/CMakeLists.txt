@@ -12,7 +12,6 @@ add_executable(
   basis.cpp
   ${UTILS})
 
-# add_executable(main main.cpp Octree.cpp pOctree.cpp ${UTILS})
 # add_executable(main main.cpp basis.cpp ${UTILS})
 
 # add_executable( plot_poisson plotPoisson.cpp PoissonRecon.cpp Normal.cpp
