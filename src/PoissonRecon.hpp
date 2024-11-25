@@ -28,7 +28,7 @@ private:
   laplaceField _laplacian_field;
 
   // The system to be solved is _L * _x = _v
-  Eigen::SparseMatrix<double> _L;
+  Eigen::SparseMatrix<double, Eigen::ColMajor> _L;
   Eigen::VectorXd _x;
   Eigen::VectorXd _v;
 };

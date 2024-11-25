@@ -2,11 +2,22 @@
 #define OCTREE_HPP
 
 #include <array>
-#include <iostream>
 #include <vector>
 
 using id_point = std::pair<int, std::array<double, 3>>;
 
+// -------------------------------------------------------------------------------------------------//
+// Node
+// -------------------------------------------------------------------------------------------------//
+
+//      6.----.----. 7      \\ index into children by bit map
+//      /|   /|  3/ |       \\ xyz where x, y, z are 0 or 1
+//    2.----.----.__.
+//     |/|4 | |  | /|
+//     .----.----. -.5
+//     |/   |/   | /
+//     .----.----.
+//    0          1
 struct Node;
 
 union NodeInfo {
@@ -17,14 +28,6 @@ union NodeInfo {
 };
 
 struct Node {
-  //      6.----.----. 7      \\ index into children by bit map
-  //      /|   /|  3/ |       \\ xyz where x, y, z are 0 or 1
-  //    2.----.----.__.
-  //     |/|4 | |  | /|
-  //     .----.----. -.5
-  //     |/   |/   | /
-  //     .----.----.
-  //    0          1
   Node(std::vector<id_point> points, std::array<double, 3> center, double width,
        bool is_leaf, int depth);
   ~Node();
@@ -43,7 +46,12 @@ struct Node {
   // too lazy to extend from base class
   std::array<double, 3> normal = {0.0, 0.0, 0.0};
   int id = -1;
+  int depth_id = -1;
 };
+
+// -------------------------------------------------------------------------------------------------//
+// Octree
+// -------------------------------------------------------------------------------------------------//
 
 class Octree {
 public:

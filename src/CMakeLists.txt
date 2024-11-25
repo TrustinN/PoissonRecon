@@ -12,6 +12,9 @@ add_executable(
   basis.cpp
   ${UTILS})
 
+add_executable(plotIndicator plotIndicator.cpp ${UTILS})
+target_link_libraries(plotIndicator PRIVATE ${VTK_LIBRARIES})
+
 # add_executable(main main.cpp basis.cpp ${UTILS})
 
 # add_executable( plot_poisson plotPoisson.cpp PoissonRecon.cpp Normal.cpp

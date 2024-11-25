@@ -83,10 +83,8 @@ struct laplaceField : public Field {
 };
 
 template <typename field_type>
-double projection(field_type field, Node *n1, Node *n2) {
-  std::array<double, 3> normal = n2->normal;
+std::array<double, 3> projection(field_type field, Node *n1, Node *n2) {
   std::array<double, 3> center = n2->center;
-
   std::array<double, 3> diff = center - n1->center;
 
   std::array<double, 3> bit_map;
@@ -112,7 +110,7 @@ double projection(field_type field, Node *n1, Node *n2) {
   double infl_y = field._infl_y[idx];
   double infl_z = field._infl_z[idx];
 
-  return normal[0] * infl_x + normal[1] * infl_y + normal[2] * infl_z;
+  return {infl_x, infl_y, infl_z};
 };
 
 #endif

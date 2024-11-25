@@ -20,9 +20,9 @@ std::ostream &operator<<(std::ostream &os, const std::array<double, 27> &arr) {
 };
 
 int main() {
-  std::vector<std::array<double, 3>> vertices = sample_sphere(1000, 3);
+  std::vector<std::array<double, 3>> vertices = sample_sphere(1500, 3);
   NormalApproximations na(vertices);
-  PoissonRecon poisson(vertices, na.normals(), na.inward_normals());
+  PoissonRecon poisson(vertices, na.normals(), na.inward_normals(), 6);
 
   // divVField dV;
   // std::string indent = std::string(40, '-');
