@@ -85,6 +85,7 @@ struct laplaceField : public Field {
 template <typename field_type>
 std::array<double, 3> projection(field_type field, Node *n1, Node *n2) {
   std::array<double, 3> center = n2->center;
+
   std::array<double, 3> diff = center - n1->center;
 
   std::array<double, 3> bit_map;
