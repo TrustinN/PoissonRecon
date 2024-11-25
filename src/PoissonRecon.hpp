@@ -24,8 +24,8 @@ private:
   std::vector<std::array<double, 3>> _normals;
   std::vector<std::array<double, 3>> _inward_normals;
   pOctree _octree;
-  divVField _divergence_field;
-  laplaceField _laplacian_field;
+  divergenceField _divergence_field;
+  laplacianField _laplacian_field;
 
   // The system to be solved is _L * _x = _v
   Eigen::SparseMatrix<double, Eigen::ColMajor> _L;

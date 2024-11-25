@@ -79,7 +79,7 @@ int main(int argc, char **argv) {
   // retrieve values
   std::vector<std::array<double, 3>> vertices = load_points("centers.txt");
   std::vector<std::array<double, 3>> samples = load_points("points.txt");
-  std::vector<double> weights = loadVectorFromFile("x.txt");
+  std::vector<double> weights = loadVectorFromFile("x_normalized.txt");
 
   vtkNew<vtkDoubleArray> pointScalars;
   pointScalars->SetName("pointScalars");

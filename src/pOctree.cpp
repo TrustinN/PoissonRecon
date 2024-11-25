@@ -173,12 +173,9 @@ std::vector<Node *> pOctree::Neighbors(Node *node) {
   // start the split search
   std::vector<std::array<double, 3>> targets = nearest_27(node);
   for (int i = 0; i < targets.size(); i++) {
-    // exclude center node
-    if (i != 13) {
-      Node *found = seek_node(cur_node, targets[i]);
-      if (found->depth == node->depth) {
-        ret.push_back(found);
-      }
+    Node *found = seek_node(cur_node, targets[i]);
+    if (found->depth == node->depth) {
+      ret.push_back(found);
     }
   }
 

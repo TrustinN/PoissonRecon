@@ -1,4 +1,5 @@
 #include "PoissonRecon.hpp"
+#include "utils/io.hpp"
 #include <Eigen/SparseQR>
 #include <fstream>
 #include <iostream>
@@ -81,6 +82,7 @@ PoissonRecon::PoissonRecon(
     }
   }
 
+  double width = nodes[0]->width;
   int node_count = nodes.size();
 
   std::vector<std::array<double, 3>> centers(node_count);
@@ -97,7 +99,7 @@ PoissonRecon::PoissonRecon(
       res +=
           dot(projection(_divergence_field, node, neighbor), neighbor->normal);
       std::array<double, 3> l_p = projection(_laplacian_field, node, neighbor);
-      double entry = (l_p[0] + l_p[1] + l_p[2]) / node->width;
+      double entry = (l_p[0] + l_p[1] + l_p[2]);
       if (std::abs(entry) > TOL) {
         triplet_list.push_back(
             Eigen::Triplet<double>(node->depth_id, neighbor->depth_id, entry));
@@ -110,6 +112,7 @@ PoissonRecon::PoissonRecon(
 
   _L = Eigen::SparseMatrix<double>(node_count, node_count);
   _L.setFromTriplets(triplet_list.begin(), triplet_list.end());
+  _L = (_L + (Eigen::SparseMatrix<double, Eigen::ColMajor>)_L.transpose()) / 2;
 
   Eigen::MatrixXd denseL = Eigen::MatrixXd(_L);
   Eigen::MatrixXd diff = denseL - denseL.transpose();

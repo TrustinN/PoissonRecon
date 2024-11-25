@@ -1,6 +1,7 @@
 #include "Normal.hpp"
 #include "PoissonRecon.hpp"
 #include "basis.hpp"
+#include "integration.hpp"
 #include "utils/io.hpp"
 #include "utils/linalg.hpp"
 #include "utils/sampling.hpp"
@@ -22,47 +23,32 @@ std::ostream &operator<<(std::ostream &os, const std::array<double, 27> &arr) {
 int main() {
   std::vector<std::array<double, 3>> vertices = sample_sphere(1500, 3);
   NormalApproximations na(vertices);
-  PoissonRecon poisson(vertices, na.normals(), na.inward_normals(), 6);
+  PoissonRecon poisson(vertices, na.normals(), na.inward_normals(), 7);
 
-  // divVField dV;
+  // divergenceField df;
+  // laplacianField lf;
+  //
+  // std::cout << df.x_field << std::endl;
+  // std::cout << df.y_field << std::endl;
+  // std::cout << df.z_field << std::endl;
+  // std::cout << lf.x_field << std::endl;
+  // std::cout << lf.y_field << std::endl;
+  // std::cout << lf.z_field << std::endl;
+  //
   // std::string indent = std::string(40, '-');
-  // std::cout << indent << "X" << indent << std::endl;
-  // std::cout << dV.int_field_x << std::endl;
-  // std::cout << dV._infl_x << std::endl;
-  // std::cout << indent << "Y" << indent << std::endl;
-  // std::cout << dV.int_field_y << std::endl;
-  // std::cout << dV._infl_y << std::endl;
-  // std::cout << indent << "Z" << indent << std::endl;
-  // std::cout << dV.int_field_z << std::endl;
-  // std::cout << dV._infl_z << std::endl;
-  // std::cout << indent << "Integrals" << indent << std::endl;
-  // std::cout << dV.wc << std::endl;
-  // std::cout << dV.dw << std::endl;
-  // double totl = 0;
-  // for (double t : dV.int_field_x) {
-  //   totl += t;
-  // };
-  // std::cout << "sum: " << totl << std::endl;
+  // std::array<double, 3> c1 = {1, 1, 1};
+  // double width = .5;
+  // std::array<double, 3> c2{0};
+  // for (int i = 0; i < 27; i++) {
+  //   std::array<int, 3> axis = {i % 3, (i / 3) % 3, (i / 9) % 3};
+  //   c2[0] = c1[0] + width * (axis[0] - 1);
+  //   c2[1] = c1[1] + width * (axis[1] - 1);
+  //   c2[2] = c1[2] + width * (axis[2] - 1);
   //
-  // laplaceField lp;
-  // std::cout << indent << "X" << indent << std::endl;
-  // std::cout << lp.int_field_x << std::endl;
-  // std::cout << lp._infl_x << std::endl;
-  // std::cout << indent << "Y" << indent << std::endl;
-  // std::cout << lp.int_field_y << std::endl;
-  // std::cout << lp._infl_y << std::endl;
-  // std::cout << indent << "Z" << indent << std::endl;
-  // std::cout << lp.int_field_z << std::endl;
-  // std::cout << lp._infl_z << std::endl;
-  // std::cout << indent << "Integrals" << indent << std::endl;
-  // std::cout << lp.wc << std::endl;
-  // std::cout << lp.dw << std::endl;
-  //
-  // totl = 0;
-  // for (double t : lp.int_field_x) {
-  //   totl += t;
+  //   std::cout << indent << i << indent << std::endl;
+  //   std::cout << projection(lf, c1, c2) << std::endl;
+  //   std::cout << projection(lf, c2, c1) << std::endl;
   // };
-  // std::cout << "sum: " << totl << std::endl;
 
   return 0;
 }

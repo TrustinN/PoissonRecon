@@ -38,6 +38,10 @@ double dot(const std::array<double, 3> &a, const std::array<double, 3> &b) {
   return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 }
 
+double dot(const std::array<int, 3> &a, const std::array<double, 3> &b) {
+  return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+}
+
 // helper function computes distance between
 double distance(const std::array<double, 3> &a, const Node *node) {
   std::array<double, 3> center = node->center;

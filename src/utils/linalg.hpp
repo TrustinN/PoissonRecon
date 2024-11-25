@@ -20,6 +20,7 @@ std::array<double, 3> operator+(const std::array<double, 3> &a,
 std::array<double, 3> operator-(const std::array<double, 3> &a,
                                 const std::array<double, 3> &b);
 double dot(const std::array<double, 3> &a, const std::array<double, 3> &b);
+double dot(const std::array<int, 3> &a, const std::array<double, 3> &b);
 double distance(const std::array<double, 3> &a, const Node *node);
 double distance(const std::array<double, 3> &a, const std::array<double, 3> &b);
 

@@ -5,7 +5,12 @@
 #include <array>
 #include <iostream>
 
-std::ostream &operator<<(std::ostream &ofs, const std::array<double, 3> &a);
+template <typename T>
+std::ostream &operator<<(std::ostream &ofs, const std::array<T, 3> &a) {
+  ofs << "[" << a[0] << ", " << a[1] << ", " << a[2] << "]";
+  return ofs;
+};
+
 std::ostream &operator<<(std::ostream &ofs, const id_point &a);
 template <typename T>
 std::ostream &operator<<(std::ostream &ofs, const std::vector<T> &v) {
