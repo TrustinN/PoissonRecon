@@ -112,7 +112,8 @@ PoissonRecon::PoissonRecon(
 
   _L = Eigen::SparseMatrix<double>(node_count, node_count);
   _L.setFromTriplets(triplet_list.begin(), triplet_list.end());
-  _L = (_L + (Eigen::SparseMatrix<double, Eigen::ColMajor>)_L.transpose()) / 2;
+  // _L = (_L + (Eigen::SparseMatrix<double, Eigen::ColMajor>)_L.transpose()) /
+  // 2;
 
   Eigen::MatrixXd denseL = Eigen::MatrixXd(_L);
   Eigen::MatrixXd diff = denseL - denseL.transpose();

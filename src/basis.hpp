@@ -2,6 +2,7 @@
 #define BASIS_HPP
 
 #include "integration.hpp"
+#include <iostream>
 
 struct basisF1 {
   static double operator()(double t);
@@ -45,7 +46,7 @@ std::array<double, 3> projection(field_type field, Node *n1, Node *n2) {
 
   std::array<double, 3> diff = center - n1->center;
 
-  std::array<double, 3> bit_map;
+  std::array<double, 3> bit_map{0};
   if (diff[0] == 0) {
     bit_map[0] = 1;
   } else if (diff[0] > 0) {
@@ -78,7 +79,7 @@ std::array<double, 3> projection(field_type field, std::array<double, 3> c1,
 
   std::array<double, 3> diff = c2 - c1;
 
-  std::array<double, 3> bit_map;
+  std::array<double, 3> bit_map{0};
   if (diff[0] == 0) {
     bit_map[0] = 1;
   } else if (diff[0] > 0) {
