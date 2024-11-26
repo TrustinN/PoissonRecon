@@ -1,5 +1,4 @@
 #include "PoissonRecon.hpp"
-#include "utils/io.hpp"
 #include <Eigen/SparseQR>
 #include <fstream>
 #include <iostream>
@@ -82,7 +81,6 @@ PoissonRecon::PoissonRecon(
     }
   }
 
-  double width = nodes[0]->width;
   int node_count = nodes.size();
 
   std::vector<std::array<double, 3>> centers(node_count);
@@ -99,7 +97,7 @@ PoissonRecon::PoissonRecon(
       res +=
           dot(projection(_divergence_field, node, neighbor), neighbor->normal);
       std::array<double, 3> l_p = projection(_laplacian_field, node, neighbor);
-      double entry = (l_p[0] + l_p[1] + l_p[2]);
+      double entry = l_p[0] + l_p[1] + l_p[2];
       if (std::abs(entry) > TOL) {
         triplet_list.push_back(
             Eigen::Triplet<double>(node->depth_id, neighbor->depth_id, entry));
@@ -108,12 +106,13 @@ PoissonRecon::PoissonRecon(
     centers[i] = node->center;
     _v[i] = res;
   };
+
   writeVectorToFile(_v, "v.txt");
 
   _L = Eigen::SparseMatrix<double>(node_count, node_count);
   _L.setFromTriplets(triplet_list.begin(), triplet_list.end());
-  // _L = (_L + (Eigen::SparseMatrix<double, Eigen::ColMajor>)_L.transpose()) /
-  // 2;
+
+  save_sparse_matrix(_L, "L.txt");
 
   Eigen::MatrixXd denseL = Eigen::MatrixXd(_L);
   Eigen::MatrixXd diff = denseL - denseL.transpose();
@@ -122,8 +121,6 @@ PoissonRecon::PoissonRecon(
   std::cout << "Node count: " << node_count << std::endl;
   std::cout << "Matrix size: " << node_count * node_count << std::endl;
   std::cout << "Num non-zero entries: " << triplet_list.size() << std::endl;
-
-  save_sparse_matrix(_L, "L.txt");
 
   // solve the system for x
   Eigen::ConjugateGradient<Eigen::SparseMatrix<double>,

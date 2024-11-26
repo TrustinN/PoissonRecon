@@ -1,7 +1,3 @@
-#include "Normal.hpp"
-#include "PoissonRecon.hpp"
-#include "utils/linalg.hpp"
-#include "utils/sampling.hpp"
 #include <vtkActor.h>
 #include <vtkCamera.h>
 #include <vtkCellData.h>
@@ -18,6 +14,11 @@
 #include <vtkRenderWindowInteractor.h>
 #include <vtkRenderer.h>
 #include <vtkSmartPointer.h>
+#include <vtkSphereSource.h>
+#include <vtkTransform.h>
+#include <vtkTransformFilter.h>
+#include <vtkTransformPolyDataFilter.h>
+#include <vtkVectorText.h>
 #include <vtkVertexGlyphFilter.h>
 
 #include <array>
@@ -86,15 +87,14 @@ int main(int argc, char **argv) {
   pointScalars->SetNumberOfComponents(1);
 
   vtkNew<vtkPoints> points;
-  double min_val = std::numeric_limits<double>::infinity();
-  double max_val = std::numeric_limits<double>::infinity();
   for (int i = 0; i < vertices.size(); i++) {
     std::array<double, 3> v = vertices[i];
     points->InsertNextPoint(v[0], v[1], v[2]);
     double scalar = weights[i];
+    // double scalar =
+    //     sqrt(std::pow(v[0], 2) + std::pow(v[1], 2) + std::pow(v[2], 2)) - 1;
     pointScalars->InsertNextValue(scalar);
-    min_val = std::min(min_val, scalar);
-    max_val = std::max(max_val, scalar);
+    std::cout << scalar << std::endl;
   }
 
   vtkNew<vtkPoints> points2;
@@ -118,7 +118,7 @@ int main(int argc, char **argv) {
 
   vtkNew<vtkLookupTable> rainbowBlueRedLut;
   rainbowBlueRedLut->SetNumberOfColors(256);
-  rainbowBlueRedLut->SetHueRange(0.667, 0.0);
+  rainbowBlueRedLut->SetHueRange(0.667, 0);
   rainbowBlueRedLut->Build();
 
   // vertex Actor & Mapper
@@ -127,6 +127,9 @@ int main(int argc, char **argv) {
 
   vtkNew<vtkPolyDataMapper> mapper;
   mapper->SetInputConnection(vertexFilter->GetOutputPort());
+  mapper->SetLookupTable(rainbowBlueRedLut);
+  mapper->SetColorModeToMapScalars();
+  mapper->SetScalarModeToUsePointData();
 
   vtkNew<vtkVertexGlyphFilter> vertexFilter2;
   vertexFilter2->SetInputData(polyData2);
@@ -138,13 +141,13 @@ int main(int argc, char **argv) {
   vertexActor->SetMapper(mapper);
   vertexActor->GetProperty()->SetPointSize(3.0);
   vertexActor->GetProperty()->SetSpecular(1.0);
-  vertexActor->GetProperty()->SetSpecularPower(50.0);
+  // vertexActor->GetProperty()->SetSpecularPower(50.0);
 
   vtkNew<vtkActor> vertexActor2;
   vertexActor2->SetMapper(mapper2);
   vertexActor2->GetProperty()->SetPointSize(3.0);
   vertexActor2->GetProperty()->SetSpecular(1.0);
-  vertexActor2->GetProperty()->SetSpecularPower(50.0);
+  // vertexActor2->GetProperty()->SetSpecularPower(50.0);
 
   // Render
   vtkNew<vtkRenderer> renderer;
@@ -154,8 +157,57 @@ int main(int argc, char **argv) {
   vtkNew<vtkRenderWindowInteractor> renderWindowInteractor;
   renderWindowInteractor->SetRenderWindow(renderWindow);
 
+  // int target = points->GetNumberOfPoints() / 10;
+  // int i = points->GetNumberOfPoints() - 1;
+  // while (target > 0) {
+  //   if (weights[i] < 0) {
+  //     double p[3];
+  //     points->GetPoint(i, p);
+  //
+  //     vtkNew<vtkVectorText> vectorText;
+  //     vectorText->SetText(std::to_string(((int)(weights[i] / 40000)))
+  //                             .c_str()); // Use point index as label
+  //
+  //     vtkNew<vtkTransform> transform;
+  //     transform->Translate(p[0], p[1], p[2]);
+  //     transform->Scale(0.01, 0.01, 0.01);
+  //
+  //     vtkNew<vtkTransformPolyDataFilter> transformFilter;
+  //     transformFilter->SetTransform(transform);
+  //     transformFilter->SetInputConnection(vectorText->GetOutputPort());
+  //     transformFilter->Update();
+  //
+  //     vtkNew<vtkPolyDataMapper> textMapper;
+  //     textMapper->SetInputConnection(transformFilter->GetOutputPort());
+  //
+  //     vtkSmartPointer<vtkActor> textActor = vtkSmartPointer<vtkActor>::New();
+  //     textActor->SetMapper(textMapper);
+  //
+  //     renderer->AddActor(textActor);
+  //     target -= 1;
+  //   }
+  //   i--;
+  // }
+
+  // Create a sphere
+  vtkNew<vtkSphereSource> sphereSource;
+  sphereSource->SetRadius(1.0);         // Unit sphere
+  sphereSource->SetThetaResolution(32); // Increase for a smoother sphere
+  sphereSource->SetPhiResolution(32);   // Increase for a smoother sphere
+  sphereSource->Update();
+
+  // Create a mapper
+  vtkNew<vtkPolyDataMapper> sphereMapper;
+  sphereMapper->SetInputConnection(sphereSource->GetOutputPort());
+
+  // Create an actor
+  vtkNew<vtkActor> sphereActor;
+  sphereActor->SetMapper(sphereMapper);
+  sphereActor->GetProperty()->SetColor(0.0, 0.0, 0.0);
+
   renderer->AddActor(vertexActor);
   renderer->AddActor(vertexActor2);
+  // renderer->AddActor(sphereActor);
 
   // Get the bounds of the points (minX, maxX, minY, maxY, minZ, maxZ)
   double bounds[6];

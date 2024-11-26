@@ -159,16 +159,16 @@ std::vector<Node *> pOctree::Neighbors(Node *node) {
   Node *cur_node = _root;
   double threshold = 4 * node->width;
 
-  while (true) {
-    int idx = node_index_map(cur_node, node->center);
-    Node *new_node = cur_node->info.children[idx];
-    std::array<double, 3> diff = new_node->center - node->center;
-    double dist = std::max(diff[0], std::max(diff[1], diff[2]));
-    if (new_node->width - dist < threshold) {
-      break;
-    }
-    cur_node = new_node;
-  };
+  // while (true) {
+  //   int idx = node_index_map(cur_node, node->center);
+  //   Node *new_node = cur_node->info.children[idx];
+  //   std::array<double, 3> diff = new_node->center - node->center;
+  //   double dist = std::max(diff[0], std::max(diff[1], diff[2]));
+  //   if (new_node->width - dist < threshold) {
+  //     break;
+  //   }
+  //   cur_node = new_node;
+  // };
 
   // start the split search
   std::vector<std::array<double, 3>> targets = nearest_27(node);

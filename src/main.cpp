@@ -1,7 +1,6 @@
 #include "Normal.hpp"
 #include "PoissonRecon.hpp"
 #include "basis.hpp"
-#include "integration.hpp"
 #include "utils/io.hpp"
 #include "utils/linalg.hpp"
 #include "utils/sampling.hpp"
@@ -21,9 +20,10 @@ std::ostream &operator<<(std::ostream &os, const std::array<double, 27> &arr) {
 };
 
 int main() {
-  std::vector<std::array<double, 3>> vertices = sample_sphere(1500, 3);
+  std::vector<std::array<double, 3>> vertices = sample_sphere(1500, 1);
+  // std::vector<std::array<double, 3>> vertices = sample_box(2000, 1.5, 2, 1);
   NormalApproximations na(vertices);
-  PoissonRecon poisson(vertices, na.normals(), na.inward_normals(), 7);
+  PoissonRecon poisson(vertices, na.normals(), na.inward_normals(), 6);
 
   // divergenceField df;
   // laplacianField lf;
@@ -34,7 +34,7 @@ int main() {
   // std::cout << lf.x_field << std::endl;
   // std::cout << lf.y_field << std::endl;
   // std::cout << lf.z_field << std::endl;
-  //
+
   // std::string indent = std::string(40, '-');
   // std::array<double, 3> c1 = {1, 1, 1};
   // double width = .5;
@@ -46,8 +46,8 @@ int main() {
   //   c2[2] = c1[2] + width * (axis[2] - 1);
   //
   //   std::cout << indent << i << indent << std::endl;
-  //   std::cout << projection(lf, c1, c2) << std::endl;
-  //   std::cout << projection(lf, c2, c1) << std::endl;
+  //   // std::cout << projection(lf, c1, c2) << std::endl;
+  //   // std::cout << projection(lf, c2, c1) << std::endl;
   // };
 
   return 0;

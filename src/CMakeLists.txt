@@ -10,7 +10,6 @@ add_executable(
   Octree.cpp
   pOctree.cpp
   basis.cpp
-  integration.cpp
   ${UTILS})
 
 add_executable(plotIndicator plotIndicator.cpp ${UTILS})
@@ -29,7 +28,6 @@ add_executable(
   Octree.cpp
   pOctree.cpp
   basis.cpp
-  integration.cpp
   ${UTILS})
 target_link_libraries(plot_poisson PRIVATE ${VTK_LIBRARIES} ${GSL_LIBRARIES})
 # target_link_libraries(plot_poisson ${GSL_LIBRARIES})
