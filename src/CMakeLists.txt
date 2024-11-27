@@ -1,23 +1,14 @@
 file(GLOB UTILS "utils/*.cpp")
 
-add_executable(
-  main
-  main.cpp
-  PoissonRecon.cpp
-  Normal.cpp
-  RiemannianGraph.cpp
-  Emst.cpp
-  Octree.cpp
-  pOctree.cpp
-  basis.cpp
-  ${UTILS})
-
+# add_executable( main main.cpp PoissonRecon.cpp Normal.cpp RiemannianGraph.cpp
+# Emst.cpp Octree.cpp pOctree.cpp basis.cpp ${UTILS})
+#
 add_executable(plotIndicator plotIndicator.cpp ${UTILS})
 target_link_libraries(plotIndicator PRIVATE ${VTK_LIBRARIES})
-
-# add_executable(main main.cpp basis.cpp integration.cpp ${UTILS})
-target_link_libraries(main ${GSL_LIBRARIES})
-
+#
+# # add_executable(main main.cpp basis.cpp integration.cpp ${UTILS})
+# target_link_libraries(main ${GSL_LIBRARIES})
+#
 add_executable(
   plot_poisson
   plotPoisson.cpp
@@ -30,7 +21,6 @@ add_executable(
   basis.cpp
   ${UTILS})
 target_link_libraries(plot_poisson PRIVATE ${VTK_LIBRARIES} ${GSL_LIBRARIES})
-# target_link_libraries(plot_poisson ${GSL_LIBRARIES})
 
 #
 # add_executable(plot plot.cpp Octree.cpp Normal.cpp RiemannianGraph.cpp

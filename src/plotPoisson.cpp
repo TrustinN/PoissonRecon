@@ -1,22 +1,8 @@
 #include "Normal.hpp"
 #include "PoissonRecon.hpp"
 #include "utils/linalg.hpp"
+#include "utils/plot.hpp"
 #include "utils/sampling.hpp"
-#include <vtkActor.h>
-#include <vtkCamera.h>
-#include <vtkCellData.h>
-#include <vtkDoubleArray.h>
-#include <vtkLine.h>
-#include <vtkLookupTable.h>
-#include <vtkPoints.h>
-#include <vtkPolyData.h>
-#include <vtkPolyDataMapper.h>
-#include <vtkProperty.h>
-#include <vtkRenderWindow.h>
-#include <vtkRenderWindowInteractor.h>
-#include <vtkRenderer.h>
-#include <vtkSmartPointer.h>
-#include <vtkVertexGlyphFilter.h>
 
 int main(int argc, char **argv) {
   std::string obj = argv[1];
@@ -43,35 +29,18 @@ int main(int argc, char **argv) {
   }
 
   // plotting here
+  vtkNew<vtkPoints> points = load_points(field_vertices);
 
-  vtkNew<vtkPoints> points;
-  for (const auto &v : field_vertices) {
-    points->InsertNextPoint(v[0], v[1], v[2]);
-  }
+  std::vector<std::array<double, 3>> b(field_vertices.size());
+  std::vector<double> weights(field_vertices.size());
+  for (int i = 0; i < field_vertices.size(); i++) {
+    b[i] = field_vertices[i] + field_normals[i];
+    weights[i] = (dot(field_normals[i], {0.3, 0.3, 0.3}) + 1) / 2;
+  };
 
-  vtkNew<vtkCellArray> linesArray;
-  vtkNew<vtkDoubleArray> lineScalars;
-  lineScalars->SetName("LineScalars");
+  vtkNew<vtkCellArray> linesArray = load_lines(field_vertices, b, points);
+  vtkNew<vtkDoubleArray> lineScalars = load_scalars(weights);
   lineScalars->SetNumberOfComponents(1);
-
-  // Add lines to points and cell array
-  for (int i = 0; i < field_normals.size(); i++) {
-    std::array<double, 3> n = field_normals[i];
-    std::array<double, 3> extend = {field_vertices[i][0] + n[0],
-                                    field_vertices[i][1] + n[1],
-                                    field_vertices[i][2] + n[2]};
-    points->InsertNextPoint(extend.data());
-    points->InsertNextPoint(field_vertices[i].data());
-
-    vtkNew<vtkLine> vtkLine;
-    vtkLine->GetPointIds()->SetId(0, points->GetNumberOfPoints() - 2);
-    vtkLine->GetPointIds()->SetId(1, points->GetNumberOfPoints() - 1);
-    linesArray->InsertNextCell(vtkLine);
-
-    // Assign a scalar value to the line
-    double scalar = (dot(n, {0.3, 0.3, 0.3}) + 1) / 2;
-    lineScalars->InsertNextValue(scalar);
-  }
 
   // data here
   vtkNew<vtkPolyData> polyData;
@@ -118,20 +87,6 @@ int main(int argc, char **argv) {
 
   renderer->AddActor(vertexActor);
   renderer->AddActor(lineActor);
-
-  // Get the bounds of the points (minX, maxX, minY, maxY, minZ, maxZ)
-  double bounds[6];
-  polyData->GetBounds(bounds);
-
-  // Calculate the center of the points
-  double centerX = (bounds[0] + bounds[1]) / 2.0;
-  double centerY = (bounds[2] + bounds[3]) / 2.0;
-  double centerZ = (bounds[4] + bounds[5]) / 2.0;
-
-  vtkSmartPointer<vtkCamera> camera = renderer->GetActiveCamera();
-  camera->SetPosition(centerX, centerY, bounds[5] + 5);
-  camera->SetFocalPoint(centerX, centerY, centerZ);
-  camera->SetViewUp(0, 1, 0);
 
   // Window Render
   renderWindow->Render();

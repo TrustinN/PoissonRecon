@@ -5,6 +5,7 @@
 #include "Eigen/Sparse"
 #include "basis.hpp"
 #include "pOctree.hpp"
+#include "utils/io.hpp"
 #include <array>
 #include <vector>
 
@@ -15,12 +16,16 @@ public:
                const std::vector<std::array<double, 3>> &inward_normals,
                int depth = 8);
 
+  void run();
+  void write();
+
   pOctree octree() { return _octree; };
   Eigen::VectorXd v() { return _v; };
 
 private:
   int _depth;
   std::vector<std::array<double, 3>> _points;
+  std::vector<std::array<double, 3>> _centers;
   std::vector<std::array<double, 3>> _normals;
   std::vector<std::array<double, 3>> _inward_normals;
   pOctree _octree;

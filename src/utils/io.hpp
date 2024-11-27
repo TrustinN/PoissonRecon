@@ -2,7 +2,10 @@
 #define IO_HPP
 
 #include "../Octree.hpp"
+#include "Eigen/Dense"
+#include "Eigen/Sparse"
 #include <array>
+#include <fstream>
 #include <iostream>
 
 template <typename T>
@@ -28,5 +31,15 @@ std::ostream &operator<<(std::ostream &ofs, const std::vector<T> &v) {
 std::ostream &operator<<(std::ostream &ofs, const Node &n);
 std::ostream &operator<<(std::ostream &ofs, Node *n);
 std::ostream &operator<<(std::ostream &ofs, const Octree &o);
+
+void writeVectorToFile(const Eigen::VectorXd &vec, const std::string &filename);
+std::vector<double> loadVectorFromFile(const std::string &filename);
+
+void save_sparse_matrix(const Eigen::SparseMatrix<double> &matrix,
+                        const std::string &filename);
+
+void save_points(const std::vector<std::array<double, 3>> &points,
+                 const std::string &filename);
+std::vector<std::array<double, 3>> load_points(const std::string &filename);
 
 #endif

@@ -15,7 +15,7 @@ double integral_f1_f2(int t) {
   case 0:
     return 0.00833333;
   case 1:
-    return 1.45;
+    return 0.55;
   case 2:
     return 0.00833333;
   default:

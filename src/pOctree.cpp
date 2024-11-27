@@ -1,9 +1,6 @@
 #include "pOctree.hpp"
 #include "Octree.hpp"
 #include "utils/linalg.hpp"
-#include <cassert>
-
-#include <set>
 
 // -------------------------------------------------------------------------------------------------//
 // Helper functions
