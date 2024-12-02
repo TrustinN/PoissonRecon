@@ -1,6 +1,8 @@
 #include "pOctree.hpp"
 #include "Octree.hpp"
+#include "utils/io.hpp"
 #include "utils/linalg.hpp"
+#include <iostream>
 
 // -------------------------------------------------------------------------------------------------//
 // Helper functions
@@ -11,7 +13,7 @@ Node *seek_node(Node *node, const std::array<double, 3> &p) {
   Node *r_node = node;
   while (!r_node->is_leaf) {
     int idx = node_index_map(r_node, p);
-    r_node = r_node->info.children[idx];
+    r_node = r_node->children.nodes[idx];
   };
   return r_node;
 }
@@ -84,11 +86,11 @@ pOctree::pOctree(std::vector<std::array<double, 3>> points, int depth)
   // defines the centers we already have
   std::set<std::array<double, 3>> curr_ctr_set;
 
-  for (Node *node : _leaf_nodes) {
+  for (Node *node : getNodesAtDepth(_max_depth)) {
     curr_ctr_set.insert(node->center);
 
     // compute 8 closest center nodes
-    for (id_point p : node->info.points) {
+    for (id_point p : node->children.points) {
       std::vector<std::array<double, 3>> n_centers =
           nearest_8(node, std::get<1>(p));
       ins_ctr_set.insert(n_centers.begin() + 1, n_centers.end());

@@ -56,26 +56,26 @@ Node::Node(std::vector<id_point> points, std::array<double, 3> center,
            double width, bool is_leaf, int depth)
     : center(center), width(width), depth(depth), is_leaf(is_leaf),
       num_points(points.size()) {
-  // info is union type, choose if we want to store points or children
+  // children is union type, choose if we want to store points or children
   if (is_leaf) {
-    new (&info.points) std::vector<id_point>(points);
+    new (&children.points) std::vector<id_point>(points);
   } else {
-    new (&info.children) std::array<Node *, 8>{nullptr};
+    new (&children.nodes) std::array<Node *, 8>{nullptr};
   }
 };
 
 Node::~Node() {
   if (is_leaf) {
-    info.points.~vector();
+    children.points.~vector();
   } else {
-    info.children.~array();
+    children.nodes.~array();
   }
 };
 
 void Node::Insert(const std::vector<id_point> &points) {
   assert(this->is_leaf);
-  this->info.points.insert(this->info.points.end(), points.begin(),
-                           points.end());
+  this->children.points.insert(this->children.points.end(), points.begin(),
+                               points.end());
 }
 
 void Node::subdivide() {
@@ -83,11 +83,11 @@ void Node::subdivide() {
   this->is_leaf = false;
 
   // get current points
-  std::vector<id_point> points = std::move(this->info.points);
+  std::vector<id_point> points = std::move(this->children.points);
 
   // switch union type
-  this->info.points.~vector();
-  this->info.children = std::array<Node *, 8>{nullptr};
+  this->children.points.~vector();
+  this->children.nodes = std::array<Node *, 8>{nullptr};
 
   std::array<std::vector<id_point>, 8> point_partition =
       partition_points(this, points);
@@ -95,8 +95,8 @@ void Node::subdivide() {
 
   // populate children as Node pointers
   for (int i = 0; i < 8; i++) {
-    this->info.children[i] = new Node(point_partition[i], n_centers[i],
-                                      width / 2, true, this->depth + 1);
+    this->children.nodes[i] = new Node(point_partition[i], n_centers[i],
+                                       width / 2, true, this->depth + 1);
   };
 };
 
@@ -116,22 +116,22 @@ Node *Octree::build(std::vector<id_point> points, std::array<double, 3> center,
   };
   Node *ret_node = new Node(points, center, width, is_leaf, depth);
 
-  if (!is_leaf) {
+  if (is_leaf) {
+    // ret_node->depth_id = getNodesAtDepth(depth).size();
+    // getNodesAtDepth(depth).push_back(ret_node);
+    register_node(ret_node);
+    return ret_node;
+  }
 
-    // Figure out which points go in which subdivision
-    std::array<std::vector<id_point>, 8> sub_d =
-        partition_points(ret_node, points);
+  // Figure out which points go in which subdivision
+  auto sub_d = partition_points(ret_node, points);
 
-    // Make pointers to subdivision nodes
-    std::array<Node *, 8> &n_child = ret_node->info.children;
-    std::vector<std::array<double, 3>> n_centers = split_centers(ret_node);
+  // Make pointers to subdivision nodes
+  auto &n_child = ret_node->children.nodes;
+  auto n_centers = split_centers(ret_node);
 
-    for (int i = 0; i < 8; i++) {
-      n_child[i] = build(sub_d[i], n_centers[i], width / 2.0, depth + 1);
-    };
-  } else {
-    ret_node->id = _leaf_nodes.size();
-    _leaf_nodes.push_back(ret_node);
+  for (int i = 0; i < 8; i++) {
+    n_child[i] = build(sub_d[i], n_centers[i], width / 2.0, depth + 1);
   };
 
   return ret_node;
@@ -142,39 +142,41 @@ Octree::Octree(std::vector<std::array<double, 3>> points, int max_depth,
     : _size(points.size()), _points(points), _max_depth(max_depth),
       _min_depth(min_depth) {
 
-  if (points.size() > 0) {
+  _nodes = std::vector<std::vector<Node *>>(_max_depth + 1);
+  _deleted_node_ids = std::vector<std::vector<int>>(_max_depth + 1);
 
-    // compute center and width of containing tree
-    std::array<double, 3> mins{std::numeric_limits<double>::infinity()};
-    std::array<double, 3> maxes{-std::numeric_limits<double>::infinity()};
-
-    for (const auto &p : points) {
-      std::transform(
-          mins.begin(), mins.end(), p.begin(), mins.begin(),
-          [](const double &a, const double &b) { return std::min(a, b); });
-      std::transform(
-          maxes.begin(), maxes.end(), p.begin(), maxes.begin(),
-          [](const double &a, const double &b) { return std::max(a, b); });
-    };
-
-    std::array<double, 3> center = {(maxes[0] + mins[0]) / 2.0,
-                                    (maxes[1] + mins[1]) / 2.0,
-                                    (maxes[2] + mins[2]) / 2.0};
-    double width = std::max(maxes[0] - mins[0],
-                            std::max(maxes[1] - mins[1], maxes[2] - mins[2]));
-
-    std::vector<id_point> id_points(points.size());
-    for (int i = 0; i < points.size(); i++) {
-      id_points[i] = std::make_tuple(i, points[i]);
-    }
-
-    // expand the bounds by 4 * smallest node width
-    double pad = width / std::pow(2, max_depth - 2);
-    this->_root = Octree::build(id_points, center, width / 2 + pad, 1);
-
-  } else {
+  if (points.size() == 0) {
     this->_root = nullptr;
+    return;
+  }
+
+  // compute center and width of containing tree
+  std::array<double, 3> mins{std::numeric_limits<double>::infinity()};
+  std::array<double, 3> maxes{-std::numeric_limits<double>::infinity()};
+
+  for (const auto &p : points) {
+    std::transform(
+        mins.begin(), mins.end(), p.begin(), mins.begin(),
+        [](const double &a, const double &b) { return std::min(a, b); });
+    std::transform(
+        maxes.begin(), maxes.end(), p.begin(), maxes.begin(),
+        [](const double &a, const double &b) { return std::max(a, b); });
   };
+
+  std::array<double, 3> center = {(maxes[0] + mins[0]) / 2.0,
+                                  (maxes[1] + mins[1]) / 2.0,
+                                  (maxes[2] + mins[2]) / 2.0};
+  double width = std::max(maxes[0] - mins[0],
+                          std::max(maxes[1] - mins[1], maxes[2] - mins[2]));
+
+  std::vector<id_point> id_points(points.size());
+  for (int i = 0; i < points.size(); i++) {
+    id_points[i] = std::make_tuple(i, points[i]);
+  }
+
+  // expand the bounds by 4 * smallest node width
+  double pad = width / std::pow(2, max_depth - 2);
+  this->_root = Octree::build(id_points, center, width / 2 + pad, 0);
 };
 
 // priority queue data stores either node or point
@@ -183,6 +185,9 @@ struct pqData {
   double priority;
   bool is_point;
   int id;
+
+  Node *getNode() { return data.node; };
+  std::array<double, 3> getPoint() { return data.pt; };
 
   union data {
     Node *node;
@@ -224,11 +229,11 @@ std::vector<int> Octree::kNearestNeighbors(const std::array<double, 3> query,
       // add each child of node to pq by distance to query
 
       // two cases: if node is a leaf or if node is not a leaf
-      Node *node = item.data.node;
+      Node *node = item.getNode();
 
       if (node->is_leaf) {
         // we add the points of the leaf
-        for (const id_point &p : node->info.points) {
+        for (const id_point &p : node->children.points) {
           int id = std::get<0>(p);
           std::array<double, 3> cur_p = std::get<1>(p);
           pq.push(pqData(distance(query, cur_p), cur_p, id));
@@ -236,7 +241,7 @@ std::vector<int> Octree::kNearestNeighbors(const std::array<double, 3> query,
       } else {
 
         // we add children node to pq
-        for (const auto &child : node->info.children) {
+        for (const auto &child : node->children.nodes) {
           if (child != nullptr) {
             pq.push(pqData(distance(query, child), child));
           }
@@ -252,8 +257,7 @@ std::vector<int> Octree::kNearestNeighbors(const std::array<double, 3> query,
 int Octree::Delete(Node *node, std::array<double, 3> p) {
   int del_id = -1;
   if (node->is_leaf) {
-
-    std::vector<id_point> &pts = node->info.points;
+    std::vector<id_point> &pts = node->children.points;
 
     for (auto itr = pts.begin(); itr != pts.end(); itr++) {
       id_point id_p = *itr;
@@ -264,30 +268,29 @@ int Octree::Delete(Node *node, std::array<double, 3> p) {
         break;
       };
     };
+    return del_id;
+  }
 
-  } else {
-    // find out which child node the point is in
-    int idx = node_index_map(node, p);
-    Node *next_node = node->info.children[idx];
-    del_id = Delete(next_node, p);
+  // find out which child node the point is in
+  int idx = node_index_map(node, p);
+  Node *next_node = node->children.nodes[idx];
+  del_id = Delete(next_node, p);
 
-    if (del_id != -1) {
-      node->num_points -= 1;
+  if (del_id != -1) {
+    node->num_points -= 1;
 
-      if (node->num_points == 0) {
-        node->is_leaf = true;
-        for (int i = 0; i < 8; i++) {
-          // clean up
-          delete node->info.children[i];
-          node->info.children[i] = nullptr;
-        }
-
-        // change union data type
-        node->info.children.~array();
+    if (node->num_points == 0) {
+      node->is_leaf = true;
+      for (int i = 0; i < 8; i++) {
+        // clean up
+        delete node->children.nodes[i];
+        node->children.nodes[i] = nullptr;
       }
-    };
-  };
 
+      // change union data type
+      node->children.nodes.~array();
+    }
+  };
   return del_id;
 };
 
@@ -295,22 +298,28 @@ void Octree::Delete(std::array<double, 3> p) {
   int del_id = Delete(_root, p);
   if (del_id != -1) {
     _size -= 1;
-    _deleted_ids.push_back(del_id);
+    _deleted_point_ids.push_back(del_id);
   };
 };
 
-void Octree::insert_as_leaf(Node *node) {
-  if (_unused_leaves.size() > 0) {
-    node->id = _unused_leaves.back();
-    _unused_leaves.pop_back();
-    _leaf_nodes[node->id] = node;
-  } else {
-    node->id = _leaf_nodes.size();
-    _leaf_nodes.push_back(node);
+void Octree::register_node(Node *node) {
+  int depth = node->depth;
+  std::vector<Node *> &lvl_nodes = getNodesAtDepth(depth);
+  std::vector<int> unused_node_ids = getUnusedNodeIds(depth);
+
+  if (unused_node_ids.size() == 0) {
+    node->depth_id = lvl_nodes.size();
+    lvl_nodes.push_back(node);
+    return;
   }
+
+  node->depth_id = unused_node_ids.back();
+  unused_node_ids.pop_back();
+  lvl_nodes[node->depth_id] = node;
 }
 
-void Octree::remove_leaf(Node *node) {
-  _unused_leaves.push_back(node->id);
-  node->id = -1;
+void Octree::unregister_node(Node *node) {
+  std::vector<int> unused_node_ids = getUnusedNodeIds(node->depth);
+  unused_node_ids.push_back(node->depth_id);
+  node->depth_id = -1;
 }

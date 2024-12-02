@@ -20,4 +20,4 @@ set(EIGEN_DIR "${CMAKE_SOURCE_DIR}/third_party/eigen")
 include_directories(${EIGEN_DIR})
 
 add_subdirectory(src)
-# add_subdirectory(tests)
+add_subdirectory(tests)

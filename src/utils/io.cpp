@@ -34,9 +34,9 @@ std::ostream &operator<<(std::ostream &ofs, const Node &n) {
   ofs << indent << "  " << "center: " << n.center << "," << std::endl;
   ofs << indent << "  " << "width: " << n.width << "," << std::endl;
   if (n.is_leaf) {
-    ofs << indent << "  " << n.info.points << std::endl;
+    ofs << indent << "  " << n.children.points << std::endl;
   } else {
-    ofs << indent << "  " << "children:" << n.info.children << std::endl;
+    ofs << indent << "  " << "children:" << n.children.nodes << std::endl;
   }
   ofs << indent << "}";
   return ofs;
@@ -49,9 +49,9 @@ std::ostream &operator<<(std::ostream &ofs, Node *n) {
   ofs << indent << "  " << "center: " << n->center << "," << std::endl;
   ofs << indent << "  " << "width: " << n->width << "," << std::endl;
   if (n->is_leaf) {
-    ofs << indent << "  " << n->info.points << std::endl;
+    ofs << indent << "  " << n->children.points << std::endl;
   } else {
-    ofs << indent << "  " << "children:" << n->info.children << std::endl;
+    ofs << indent << "  " << "children:" << n->children.nodes << std::endl;
   }
   ofs << indent << "}";
   return ofs;

@@ -161,7 +161,7 @@ TEST(OctreeDelete, FullDeleteBasic) {
   ASSERT_EQ(tree.size(), 0);
   ASSERT_EQ(tree.deleted_ids().size(), 4);
   ASSERT_EQ(tree.root()->is_leaf, true);
-  ASSERT_EQ(tree.root()->info.points.size(), 0);
+  ASSERT_EQ(tree.root()->children.points.size(), 0);
 };
 
 TEST(OctreeDelete, FullDeleteRandomized) {
@@ -188,7 +188,7 @@ TEST(OctreeDelete, FullDeleteRandomized) {
 
   ASSERT_EQ(tree.size(), 0);
   ASSERT_EQ(tree.root()->is_leaf, true);
-  ASSERT_EQ(tree.root()->info.points.size(), 0);
+  ASSERT_EQ(tree.root()->children.points.size(), 0);
   ASSERT_EQ(expected_del_ids, actual_del_ids);
 };
 

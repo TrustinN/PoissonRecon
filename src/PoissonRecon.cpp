@@ -17,15 +17,7 @@ PoissonRecon::PoissonRecon(
 void PoissonRecon::run() {
 
   // get depth d nodes
-  std::vector<Node *> leaf_nodes = _octree.leaf_nodes();
-  std::vector<Node *> nodes;
-  for (int i = 0; i < leaf_nodes.size(); i++) {
-    if (leaf_nodes[i]->depth == _depth) {
-      leaf_nodes[i]->depth_id = nodes.size();
-      nodes.push_back(leaf_nodes[i]);
-    }
-  }
-
+  std::vector<Node *> nodes = _octree.getNodesAtDepth(_depth);
   int node_count = nodes.size();
 
   _centers = std::vector<std::array<double, 3>>(node_count);

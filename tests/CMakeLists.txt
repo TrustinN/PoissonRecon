@@ -11,12 +11,12 @@ include(GoogleTest)
 file(GLOB UTILS "../src/utils/*.cpp")
 
 add_executable(octree tests_octree.cpp ../src/Octree.cpp ${UTILS})
-target_link_libraries(octree GTest::gtest_main)
+target_link_libraries(octree GTest::gtest_main ${VTK_LIBRARIES})
 gtest_discover_tests(octree)
 
 add_executable(
   normal_utils
   test_normal_utils.cpp ../src/Normal.cpp ../src/RiemannianGraph.cpp
   ../src/Emst.cpp ../src/Octree.cpp ${UTILS})
-target_link_libraries(normal_utils GTest::gtest_main)
+target_link_libraries(normal_utils GTest::gtest_main ${VTK_LIBRARIES})
 gtest_discover_tests(normal_utils)
