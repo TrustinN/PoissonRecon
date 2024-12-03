@@ -175,7 +175,7 @@ Octree::Octree(std::vector<std::array<double, 3>> points, int max_depth,
   }
 
   // expand the bounds by 4 * smallest node width
-  double pad = width / std::pow(2, max_depth - 2);
+  double pad = (1.3 * width) / std::pow(2, max_depth - 3);
   this->_root = Octree::build(id_points, center, width / 2 + pad, 0);
 };
 

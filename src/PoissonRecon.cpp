@@ -25,14 +25,16 @@ void PoissonRecon::run() {
 
   std::vector<Eigen::Triplet<double>> triplet_list;
   triplet_list.reserve(node_count);
+  auto field_normals = _octree.field_normals();
 
   for (int i = 0; i < node_count; i++) {
+    std::cout << i << std::endl;
     double res = 0;
     Node *node = nodes[i];
     std::vector<Node *> neighbors = _octree.Neighbors(node);
     for (Node *neighbor : neighbors) {
-      res +=
-          dot(projection(_divergence_field, node, neighbor), neighbor->normal);
+      res += dot(projection(_divergence_field, node, neighbor),
+                 field_normals[neighbor->depth_id]);
       std::array<double, 3> l_p = projection(_laplacian_field, node, neighbor);
       double entry = l_p[0] + l_p[1] + l_p[2];
       if (std::abs(entry) > TOL) {

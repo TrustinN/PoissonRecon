@@ -17,13 +17,16 @@ public:
   // basis function on our node
   double ExtractInnerProduct(Node *node);
 
-  std::set<std::array<double, 3>> field_loc() { return _field_centers; };
-  int center_count() { return _field_centers.size(); };
-  std::vector<Node *> field_nodes() { return _field_nodes; };
+  std::vector<std::array<double, 3>> field_centers() const {
+    return _field_centers;
+  };
+  std::vector<std::array<double, 3>> field_normals() const {
+    return _field_normals;
+  };
 
 private:
-  std::set<std::array<double, 3>> _field_centers;
-  std::vector<Node *> _field_nodes;
+  std::vector<std::array<double, 3>> _field_centers;
+  std::vector<std::array<double, 3>> _field_normals;
 };
 
 #endif

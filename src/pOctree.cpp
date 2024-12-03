@@ -106,50 +106,52 @@ pOctree::pOctree(std::vector<std::array<double, 3>> points, int depth)
   // insert nodes
   // set refine to be true to have a blank insert
   this->Insert<true>(diff);
+
+  int field_node_count = getNodesAtDepth(_max_depth).size();
+
+  _field_centers = std::vector<std::array<double, 3>>(field_node_count);
+  _field_normals = std::vector<std::array<double, 3>>(field_node_count);
 };
 
 void pOctree::AssignVecField(std::vector<std::array<double, 3>> normals) {
-  // a faster implementation would be to loop over the _base_nodes instead
-  for (int i = 0; i < _points.size(); i++) {
-    auto p = _points[i];
+  std::vector<Node *> base_nodes = getNodesAtDepth(_max_depth);
+  for (int i = 0; i < base_nodes.size(); i++) {
 
-    // find which node it is in
-    Node *cur_node = seek_node(_root, p);
+    Node *cur_node = base_nodes[i];
+    std::vector<id_point> points = cur_node->children.points;
+    for (id_point id_p : points) {
+      int p_id = std::get<0>(id_p);
+      std::array<double, 3> p = std::get<1>(id_p);
 
-    // get interpolation node centers
-    std::vector<std::array<double, 3>> n_centers = nearest_8(cur_node, p);
+      // get interpolation node centers
+      auto n_centers = nearest_8(cur_node, p);
 
-    // get interpolation nodes
-    std::vector<Node *> interp_nodes = {cur_node};
-    for (int j = 1; j < 8; j++) {
-      interp_nodes.push_back(seek_node(_root, n_centers[j]));
-    };
+      // get interpolation nodes
+      std::vector<Node *> interp_nodes = {cur_node};
+      for (int j = 1; j < 8; j++) {
+        interp_nodes.push_back(seek_node(_root, n_centers[j]));
+      };
 
-    for (int k = 0; k < 8; k++) {
-      int prev_count = _field_centers.size();
-      _field_centers.insert(n_centers[k]);
-      if (_field_centers.size() > prev_count) {
-        _field_nodes.push_back(interp_nodes[k]);
+      // trilinear interpolation
+      for (Node *node : interp_nodes) {
+        // compute distances to center
+        std::array<double, 3> diff = p - node->center;
+        diff[0] = abs(diff[0]);
+        diff[1] = abs(diff[1]);
+        diff[2] = abs(diff[2]);
+
+        // invert distance by center distance
+        double dist = 2 * node->width;
+        double weight = ((dist - diff[0]) / dist) * ((dist - diff[1]) / dist) *
+                        ((dist - diff[2]) / dist);
+
+        int node_id = node->depth_id;
+        _field_normals[node_id] =
+            _field_normals[node_id] + weight * normals[p_id];
       }
     }
-
-    // trilinear interpolation
-    for (Node *node : interp_nodes) {
-      // compute distances to center
-      std::array<double, 3> diff = p - node->center;
-      diff[0] = abs(diff[0]);
-      diff[1] = abs(diff[1]);
-      diff[2] = abs(diff[2]);
-
-      // invert distance by center distance
-      double dist = 2 * node->width;
-      double weight = ((dist - diff[0]) / dist) * ((dist - diff[1]) / dist) *
-                      ((dist - diff[2]) / dist);
-
-      node->normal = node->normal + weight * normals[i];
-    }
   };
-};
+}
 
 std::vector<Node *> pOctree::Neighbors(Node *node) {
   std::vector<Node *> ret;

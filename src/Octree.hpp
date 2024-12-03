@@ -45,8 +45,6 @@ struct Node {
   bool is_leaf;
   int num_points;
   NodeChildren children;
-
-  std::array<double, 3> normal = {0.0, 0.0, 0.0};
 };
 
 // -------------------------------------------------------------------------------------------------//

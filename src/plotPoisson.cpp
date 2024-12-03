@@ -17,16 +17,8 @@ int main(int argc, char **argv) {
   PoissonRecon poisson(vertices, na.normals(), na.inward_normals(), 6);
   pOctree ot = poisson.octree();
 
-  // get the normal origin and normal vectors
-  std::vector<Node *> field_nodes = ot.field_nodes();
-
-  std::vector<std::array<double, 3>> field_vertices;
-  std::vector<std::array<double, 3>> field_normals;
-
-  for (Node *node : field_nodes) {
-    field_vertices.push_back(node->center);
-    field_normals.push_back(node->normal);
-  }
+  auto field_vertices = ot.field_centers();
+  auto field_normals = ot.field_normals();
 
   // plotting here
   vtkNew<vtkPoints> points = load_points(field_vertices);
