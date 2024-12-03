@@ -5,7 +5,6 @@
 #include "Eigen/Sparse"
 #include "basis.hpp"
 #include "pOctree.hpp"
-#include "utils/io.hpp"
 #include <array>
 #include <vector>
 
@@ -20,7 +19,9 @@ public:
   void write();
 
   pOctree octree() { return _octree; };
-  Eigen::VectorXd v() { return _v; };
+  auto field_centers() const { return _field_centers; };
+  auto field_normals() const { return _field_normals; };
+  void computeVectorField();
 
 private:
   int _depth;
@@ -28,6 +29,10 @@ private:
   std::vector<std::array<double, 3>> _centers;
   std::vector<std::array<double, 3>> _normals;
   std::vector<std::array<double, 3>> _inward_normals;
+
+  std::vector<std::array<double, 3>> _field_normals;
+  std::vector<std::array<double, 3>> _field_centers;
+
   pOctree _octree;
   divergenceField _divergence_field;
   laplacianField _laplacian_field;

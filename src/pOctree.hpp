@@ -2,7 +2,6 @@
 #define P_OCTREE_HPP
 
 #include "Octree.hpp"
-#include <set>
 
 class pOctree : public Octree {
 public:
@@ -12,10 +11,6 @@ public:
   // For each node, we find all 26 neighboring nodes of the same depth within
   // distance d
   std::vector<Node *> Neighbors(Node *node);
-
-  // Compute the inner product of the divergence of our vector field with the
-  // basis function on our node
-  double ExtractInnerProduct(Node *node);
 
   std::vector<std::array<double, 3>> field_centers() const {
     return _field_centers;
@@ -28,5 +23,10 @@ private:
   std::vector<std::array<double, 3>> _field_centers;
   std::vector<std::array<double, 3>> _field_normals;
 };
+
+Node *seek_node(Node *node, const std::array<double, 3> &p);
+std::vector<std::array<double, 3>> nearest_8(Node *node,
+                                             const std::array<double, 3> &p);
+std::vector<std::array<double, 3>> nearest_27(Node *node);
 
 #endif

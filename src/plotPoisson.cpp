@@ -15,10 +15,9 @@ int main(int argc, char **argv) {
 
   NormalApproximations na(vertices);
   PoissonRecon poisson(vertices, na.normals(), na.inward_normals(), 6);
-  pOctree ot = poisson.octree();
 
-  auto field_vertices = ot.field_centers();
-  auto field_normals = ot.field_normals();
+  auto field_vertices = poisson.field_centers();
+  auto field_normals = poisson.field_normals();
 
   // plotting here
   vtkNew<vtkPoints> points = load_points(field_vertices);

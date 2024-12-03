@@ -1,4 +1,5 @@
 #include "PoissonRecon.hpp"
+#include "utils/io.hpp"
 #include <Eigen/SparseQR>
 
 constexpr static double TOL = 1e-6;
@@ -11,8 +12,54 @@ PoissonRecon::PoissonRecon(
       _depth(depth) {
 
   _octree = pOctree(points, depth);
-  _octree.AssignVecField(normals);
+  computeVectorField();
 };
+
+void PoissonRecon::computeVectorField() {
+  std::vector<Node *> base_nodes = _octree.getNodesAtDepth(_depth);
+  int node_count = base_nodes.size();
+  _field_normals = std::vector<std::array<double, 3>>(node_count);
+  _field_centers = std::vector<std::array<double, 3>>(node_count);
+
+  for (int i = 0; i < node_count; i++) {
+
+    Node *cur_node = base_nodes[i];
+    _field_centers[i] = cur_node->center;
+
+    std::vector<id_point> points = cur_node->children.points;
+    for (id_point id_p : points) {
+      int p_id = std::get<0>(id_p);
+      std::array<double, 3> p = std::get<1>(id_p);
+
+      // get interpolation node centers
+      auto n_centers = nearest_8(cur_node, p);
+
+      // get interpolation nodes
+      std::vector<Node *> interp_nodes = {cur_node};
+      for (int j = 1; j < 8; j++) {
+        interp_nodes.push_back(seek_node(_octree.root(), n_centers[j]));
+      };
+
+      // trilinear interpolation
+      for (Node *node : interp_nodes) {
+        // compute distances to center
+        std::array<double, 3> diff = p - node->center;
+        diff[0] = abs(diff[0]);
+        diff[1] = abs(diff[1]);
+        diff[2] = abs(diff[2]);
+
+        // invert distance by center distance
+        double dist = 2 * node->width;
+        double weight = ((dist - diff[0]) / dist) * ((dist - diff[1]) / dist) *
+                        ((dist - diff[2]) / dist);
+
+        int node_id = node->depth_id;
+        _field_normals[node_id] =
+            _field_normals[node_id] + weight * _normals[p_id];
+      }
+    }
+  };
+}
 
 void PoissonRecon::run() {
 
@@ -25,16 +72,14 @@ void PoissonRecon::run() {
 
   std::vector<Eigen::Triplet<double>> triplet_list;
   triplet_list.reserve(node_count);
-  auto field_normals = _octree.field_normals();
 
   for (int i = 0; i < node_count; i++) {
-    std::cout << i << std::endl;
     double res = 0;
     Node *node = nodes[i];
     std::vector<Node *> neighbors = _octree.Neighbors(node);
     for (Node *neighbor : neighbors) {
       res += dot(projection(_divergence_field, node, neighbor),
-                 field_normals[neighbor->depth_id]);
+                 _field_normals[neighbor->depth_id]);
       std::array<double, 3> l_p = projection(_laplacian_field, node, neighbor);
       double entry = l_p[0] + l_p[1] + l_p[2];
       if (std::abs(entry) > TOL) {
