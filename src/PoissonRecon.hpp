@@ -22,6 +22,7 @@ public:
   auto field_centers() const { return _field_centers; };
   auto field_normals() const { return _field_normals; };
   void computeVectorField();
+  double evaluateDivergence(const std::array<double, 3> &point);
 
 private:
   int _depth;

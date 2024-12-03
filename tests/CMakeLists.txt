@@ -10,13 +10,16 @@ include(GoogleTest)
 
 file(GLOB UTILS "../src/utils/*.cpp")
 
-add_executable(octree tests_octree.cpp ../src/Octree.cpp ${UTILS})
+add_executable(octree octree.cpp ../src/Octree.cpp ${UTILS})
 target_link_libraries(octree GTest::gtest_main ${VTK_LIBRARIES})
 gtest_discover_tests(octree)
 
-add_executable(
-  normal_utils
-  test_normal_utils.cpp ../src/Normal.cpp ../src/RiemannianGraph.cpp
-  ../src/Emst.cpp ../src/Octree.cpp ${UTILS})
-target_link_libraries(normal_utils GTest::gtest_main ${VTK_LIBRARIES})
-gtest_discover_tests(normal_utils)
+add_executable(normal normal.cpp ../src/Normal.cpp ../src/RiemannianGraph.cpp
+                      ../src/Emst.cpp ../src/Octree.cpp ${UTILS})
+target_link_libraries(normal GTest::gtest_main ${VTK_LIBRARIES})
+gtest_discover_tests(normal)
+
+add_executable(polynomial polynomial.cpp ../src/Polynomial.cpp
+                          ../src/PPolynomial.cpp)
+target_link_libraries(polynomial GTest::gtest_main)
+gtest_discover_tests(polynomial)

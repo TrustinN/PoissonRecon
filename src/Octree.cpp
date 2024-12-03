@@ -323,3 +323,11 @@ void Octree::unregister_node(Node *node) {
   unused_node_ids.push_back(node->depth_id);
   node->depth_id = -1;
 }
+
+int Octree::node_count() const {
+  int total;
+  for (const auto &node_levels : _nodes) {
+    total += node_levels.size();
+  }
+  return total;
+}

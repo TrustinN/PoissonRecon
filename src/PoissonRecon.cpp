@@ -110,7 +110,7 @@ void PoissonRecon::write() {
 
   std::cout << "Node count: " << node_count << std::endl;
   std::cout << "Matrix size: " << node_count * node_count << std::endl;
-  // std::cout << "Num non-zero entries: " << triplet_list.size() << std::endl;
+  std::cout << "Num non-zero entries: " << _L.nonZeros() << std::endl;
 
   save_sparse_matrix(_L, "L.txt");
   writeVectorToFile(_v, "v.txt");
