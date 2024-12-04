@@ -8,13 +8,20 @@
 #include <fstream>
 #include <iostream>
 
-template <typename T>
-std::ostream &operator<<(std::ostream &ofs, const std::array<T, 3> &a) {
-  ofs << "[" << a[0] << ", " << a[1] << ", " << a[2] << "]";
-  return ofs;
+template <typename T, size_t N>
+std::ostream &operator<<(std::ostream &ofs, const std::array<T, N> &a) {
+  ofs << "[";
+  if (N > 0) {
+    ofs << a[0];
+    for (int i = 1; i < N; i++) {
+      ofs << ", " << a[i];
+    }
+  };
+  return ofs << "]";
 };
 
 std::ostream &operator<<(std::ostream &ofs, const id_point &a);
+
 template <typename T>
 std::ostream &operator<<(std::ostream &ofs, const std::vector<T> &v) {
   ofs << "<";
