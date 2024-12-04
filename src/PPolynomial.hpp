@@ -15,22 +15,23 @@ template <int Degree> struct PPolynomial {
       : polys(polys), intervals(intervals) {
     assert(intervals.size() == polys.size());
   };
+  PPolynomial(const PPolynomial &p) : polys(p.polys), intervals(p.intervals) {
+    assert(intervals.size() == polys.size());
+  };
 
-  bool operator==(const PPolynomial &poly);
-  bool operator!=(const PPolynomial &poly);
+  bool operator==(const PPolynomial &poly) const;
+  bool operator!=(const PPolynomial &poly) const;
 
-  PPolynomial operator+(const PPolynomial &poly);
-  PPolynomial operator-(const PPolynomial &poly);
+  PPolynomial operator+(const PPolynomial &poly) const;
+  PPolynomial operator-(const PPolynomial &poly) const;
   template <int Degree2>
-  PPolynomial<Degree + Degree2> operator*(const PPolynomial<Degree2> &poly);
+  PPolynomial<Degree + Degree2>
+  operator*(const PPolynomial<Degree2> &poly) const;
 
-  PPolynomial &operator+=(const PPolynomial &poly);
-  PPolynomial &operator-=(const PPolynomial &poly);
-
-  PPolynomial operator+(double s);
-  PPolynomial operator-(double s);
-  PPolynomial operator*(double s);
-  PPolynomial operator/(double s);
+  PPolynomial operator+(double s) const;
+  PPolynomial operator-(double s) const;
+  PPolynomial operator*(double s) const;
+  PPolynomial operator/(double s) const;
 
   PPolynomial &operator+=(double s);
   PPolynomial &operator-=(double s);
@@ -40,27 +41,27 @@ template <int Degree> struct PPolynomial {
   PPolynomial scale(double s);
   PPolynomial shift(double t);
 
-  double operator()(double x);
+  double operator()(double x) const;
 
-  PPolynomial<Degree + 1> integral();
-  PPolynomial<Degree - 1> derivative();
+  PPolynomial<Degree + 1> integral() const;
+  PPolynomial<Degree - 1> derivative() const;
 
-  double integral(double a, double b);
+  double integral(double a, double b) const;
 };
 
 template <int Degree>
-bool PPolynomial<Degree>::operator==(const PPolynomial<Degree> &p) {
+bool PPolynomial<Degree>::operator==(const PPolynomial<Degree> &p) const {
   return (p.intervals == intervals) && (p.polys == polys);
 }
 
 template <int Degree>
-bool PPolynomial<Degree>::operator!=(const PPolynomial<Degree> &p) {
+bool PPolynomial<Degree>::operator!=(const PPolynomial<Degree> &p) const {
   return (p.intervals != intervals) || (p.polys != polys);
 }
 
 template <int Degree>
 PPolynomial<Degree>
-PPolynomial<Degree>::operator+(const PPolynomial<Degree> &p) {
+PPolynomial<Degree>::operator+(const PPolynomial<Degree> &p) const {
   const std::vector<double> &i1 = intervals;
   const std::vector<double> &i2 = p.intervals;
 
@@ -81,8 +82,7 @@ PPolynomial<Degree>::operator+(const PPolynomial<Degree> &p) {
       new_polys[new_intervals.size()] += p2[j];
       new_intervals.push_back(i2[j--]);
     } else {
-      new_polys[new_intervals.size()] += p1[i];
-      new_polys[new_intervals.size()] += p2[j];
+      new_polys[new_intervals.size()] += p1[i] + p2[j];
       if (i1[i] > i2[j]) {
         new_intervals.push_back(i1[i--]);
       } else if (i1[i] < i2[j]) {
@@ -102,7 +102,7 @@ PPolynomial<Degree>::operator+(const PPolynomial<Degree> &p) {
 
 template <int Degree>
 PPolynomial<Degree>
-PPolynomial<Degree>::operator-(const PPolynomial<Degree> &p) {
+PPolynomial<Degree>::operator-(const PPolynomial<Degree> &p) const {
   const std::vector<double> &i1 = intervals;
   const std::vector<double> &i2 = p.intervals;
 
@@ -123,8 +123,7 @@ PPolynomial<Degree>::operator-(const PPolynomial<Degree> &p) {
       new_polys[new_intervals.size()] -= p2[j];
       new_intervals.push_back(i2[j--]);
     } else {
-      new_polys[new_intervals.size()] += p1[i];
-      new_polys[new_intervals.size()] -= p2[j];
+      new_polys[new_intervals.size()] += p1[i] - p2[j];
       if (i1[i] > i2[j]) {
         new_intervals.push_back(i1[i--]);
       } else if (i1[i] < i2[j]) {
@@ -141,6 +140,185 @@ PPolynomial<Degree>::operator-(const PPolynomial<Degree> &p) {
 
   return PPolynomial<Degree>(new_polys, new_intervals);
 }
+
+template <int Degree>
+template <int Degree2>
+PPolynomial<Degree + Degree2>
+PPolynomial<Degree>::operator*(const PPolynomial<Degree2> &p) const {
+  const std::vector<double> &i1 = intervals;
+  const std::vector<double> &i2 = p.intervals;
+
+  const std::vector<Polynomial<Degree>> &p1 = polys;
+  const std::vector<Polynomial<Degree>> &p2 = p.polys;
+
+  std::vector<Polynomial<Degree + Degree2>> new_polys(p1.size() + p2.size());
+  std::vector<double> new_intervals;
+
+  int i = i1.size() - 1;
+  int j = i2.size() - 1;
+
+  while (i > -1 || j > -1) {
+    if (j < 0) {
+      new_polys[new_intervals.size()] += p1[i];
+      new_intervals.push_back(i1[i--]);
+    } else if (i < 0) {
+      new_polys[new_intervals.size()] += p2[j];
+      new_intervals.push_back(i2[j--]);
+    } else {
+      new_polys[new_intervals.size()] += p1[i] * p2[j];
+      if (i1[i] > i2[j]) {
+        new_intervals.push_back(i1[i--]);
+      } else if (i1[i] < i2[j]) {
+        new_intervals.push_back(i2[j--]);
+      } else {
+        new_intervals.push_back(i1[i--]);
+        j--;
+      }
+    }
+  }
+  std::reverse(new_intervals.begin(), new_intervals.end());
+  new_polys.resize(new_intervals.size());
+  std::reverse(new_polys.begin(), new_polys.end());
+
+  return PPolynomial<Degree + Degree2>(new_polys, new_intervals);
+};
+
+template <int Degree>
+PPolynomial<Degree> PPolynomial<Degree>::operator+(double s) const {
+  PPolynomial<Degree> q(*this);
+  for (int i = 0; i < polys.size(); i++) {
+    q.polys[i] += s;
+  }
+  return q;
+};
+
+template <int Degree>
+PPolynomial<Degree> PPolynomial<Degree>::operator-(double s) const {
+  PPolynomial<Degree> q(*this);
+  for (int i = 0; i < polys.size(); i++) {
+    q.polys[i] -= s;
+  }
+  return q;
+};
+
+template <int Degree>
+PPolynomial<Degree> PPolynomial<Degree>::operator*(double s) const {
+  PPolynomial<Degree> q(*this);
+  for (int i = 0; i < polys.size(); i++) {
+    q.polys[i] *= s;
+  }
+  return q;
+};
+
+template <int Degree>
+PPolynomial<Degree> PPolynomial<Degree>::operator/(double s) const {
+  PPolynomial<Degree> q(*this);
+  for (int i = 0; i < polys.size(); i++) {
+    q.polys[i] /= s;
+  }
+  return q;
+};
+
+template <int Degree>
+PPolynomial<Degree> &PPolynomial<Degree>::operator+=(double s) {
+  for (int i = 0; i < polys.size(); i++) {
+    polys[i] += s;
+  }
+  return *this;
+};
+
+template <int Degree>
+PPolynomial<Degree> &PPolynomial<Degree>::operator-=(double s) {
+  for (int i = 0; i < polys.size(); i++) {
+    polys[i] -= s;
+  }
+  return *this;
+};
+
+template <int Degree>
+PPolynomial<Degree> &PPolynomial<Degree>::operator*=(double s) {
+  for (int i = 0; i < polys.size(); i++) {
+    polys[i] *= s;
+  }
+  return *this;
+};
+
+template <int Degree>
+PPolynomial<Degree> &PPolynomial<Degree>::operator/=(double s) {
+  for (int i = 0; i < polys.size(); i++) {
+    polys[i] /= s;
+  }
+  return *this;
+};
+
+template <int Degree> PPolynomial<Degree> PPolynomial<Degree>::scale(double s) {
+
+  PPolynomial<Degree> q(*this);
+  for (int i = 0; i < polys.size(); i++) {
+    q.polys[i] = polys[i].scale(s);
+  }
+  return q;
+};
+
+template <int Degree> PPolynomial<Degree> PPolynomial<Degree>::shift(double t) {
+  PPolynomial<Degree> q(*this);
+  for (int i = 0; i < polys.size(); i++) {
+    q.polys[i] = polys[i].shift(t);
+  }
+  return q;
+};
+
+template <int Degree> double PPolynomial<Degree>::operator()(double x) const {
+  for (int i = intervals.size() - 1; i > -1; i--) {
+    if (x > intervals[i]) {
+      return polys[i](x);
+    }
+  }
+  assert(false);
+};
+
+template <int Degree>
+PPolynomial<Degree + 1> PPolynomial<Degree>::integral() const {
+  std::vector<Polynomial<Degree + 1>> new_polys;
+  for (int i = 0; i < polys.size(); i++) {
+    new_polys.push_back(polys[i].integral());
+  }
+  return PPolynomial<Degree + 1>(new_polys, intervals);
+};
+
+template <int Degree>
+PPolynomial<Degree - 1> PPolynomial<Degree>::derivative() const {
+  std::vector<Polynomial<Degree - 1>> new_polys;
+  for (int i = 0; i < polys.size(); i++) {
+    new_polys.push_back(polys[i].derivative());
+  }
+  return PPolynomial<Degree - 1>(new_polys, intervals);
+};
+
+template <int Degree>
+double PPolynomial<Degree>::integral(double a, double b) const {
+  int c = 1;
+  if (a > b) {
+    c = -1;
+    double tmp = a;
+    a = b;
+    b = tmp;
+  }
+  double res = 0.0;
+  for (int i = intervals.size() - 1; i > 0; i--) {
+
+    if (b < intervals[i]) {
+      while (a < intervals[i - 1]) {
+        res += polys[i - 1].integral(intervals[i - 1], b);
+        i--;
+      }
+      res += polys[i - 1].integral(a, intervals[i - 1]);
+      break;
+    }
+  }
+
+  return c * res;
+};
 
 template <int Degree>
 std::ostream &operator<<(std::ostream &os, const PPolynomial<Degree> &p) {

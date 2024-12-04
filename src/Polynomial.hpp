@@ -16,33 +16,33 @@ template <int Degree> struct Polynomial {
   template <int Degree2> bool operator==(const Polynomial<Degree2> &poly) const;
   template <int Degree2> bool operator!=(const Polynomial<Degree2> &poly) const;
 
-  Polynomial operator+(const Polynomial &poly);
-  Polynomial operator-(const Polynomial &poly);
+  Polynomial operator+(const Polynomial &poly) const;
+  Polynomial operator-(const Polynomial &poly) const;
   template <int Degree2>
-  Polynomial<Degree + Degree2> operator*(const Polynomial<Degree2> &poly);
+  Polynomial<Degree + Degree2> operator*(const Polynomial<Degree2> &poly) const;
 
   Polynomial &operator+=(const Polynomial &poly);
   Polynomial &operator-=(const Polynomial &poly);
 
-  Polynomial operator+(double s);
-  Polynomial operator-(double s);
-  Polynomial operator*(double s);
-  Polynomial operator/(double s);
+  Polynomial operator+(double s) const;
+  Polynomial operator-(double s) const;
+  Polynomial operator*(double s) const;
+  Polynomial operator/(double s) const;
 
   Polynomial &operator+=(double s);
   Polynomial &operator-=(double s);
   Polynomial &operator*=(double s);
   Polynomial &operator/=(double s);
 
-  Polynomial scale(double s);
-  Polynomial shift(double t);
+  Polynomial scale(double s) const;
+  Polynomial shift(double t) const;
 
-  double operator()(double x);
+  double operator()(double x) const;
 
-  Polynomial<Degree + 1> integral();
-  Polynomial<Degree - 1> derivative();
+  Polynomial<Degree + 1> integral() const;
+  Polynomial<Degree - 1> derivative() const;
 
-  double integral(double a, double b);
+  double integral(double a, double b) const;
 };
 
 template <int Degree1>
@@ -73,7 +73,7 @@ bool Polynomial<Degree1>::operator!=(const Polynomial<Degree2> &poly) const {
 
 template <int Degree>
 Polynomial<Degree>
-Polynomial<Degree>::operator+(const Polynomial<Degree> &poly) {
+Polynomial<Degree>::operator+(const Polynomial<Degree> &poly) const {
   auto new_coefficients = std::array<double, Degree + 1>(coefficients);
   for (int i = 0; i < Degree + 1; i++) {
     new_coefficients[i] += poly.coefficients[i];
@@ -84,7 +84,7 @@ Polynomial<Degree>::operator+(const Polynomial<Degree> &poly) {
 
 template <int Degree>
 Polynomial<Degree>
-Polynomial<Degree>::operator-(const Polynomial<Degree> &poly) {
+Polynomial<Degree>::operator-(const Polynomial<Degree> &poly) const {
   auto new_coefficients = std::array<double, Degree + 1>(coefficients);
   for (int i = 0; i < Degree + 1; i++) {
     new_coefficients[i] -= poly.coefficients[i];
@@ -96,7 +96,7 @@ Polynomial<Degree>::operator-(const Polynomial<Degree> &poly) {
 template <int Degree>
 template <int Degree2>
 Polynomial<Degree + Degree2>
-Polynomial<Degree>::operator*(const Polynomial<Degree2> &poly) {
+Polynomial<Degree>::operator*(const Polynomial<Degree2> &poly) const {
   Polynomial<Degree + Degree2> q;
   for (int i = 0; i < Degree + 1; i++) {
     for (int j = 0; j < Degree2 + 1; j++) {
@@ -127,21 +127,21 @@ Polynomial<Degree>::operator-=(const Polynomial<Degree> &poly) {
 }
 
 template <int Degree>
-Polynomial<Degree> Polynomial<Degree>::operator+(double s) {
+Polynomial<Degree> Polynomial<Degree>::operator+(double s) const {
   auto new_coefficients = std::array<double, Degree + 1>(coefficients);
   new_coefficients[0] += s;
   return Polynomial<Degree>(new_coefficients);
 }
 
 template <int Degree>
-Polynomial<Degree> Polynomial<Degree>::operator-(double s) {
+Polynomial<Degree> Polynomial<Degree>::operator-(double s) const {
   auto new_coefficients = std::array<double, Degree + 1>(coefficients);
   new_coefficients[0] -= s;
   return Polynomial<Degree>(new_coefficients);
 }
 
 template <int Degree>
-Polynomial<Degree> Polynomial<Degree>::operator*(double s) {
+Polynomial<Degree> Polynomial<Degree>::operator*(double s) const {
   auto new_coefficients = std::array<double, Degree + 1>(coefficients);
   for (int i = 0; i < Degree + 1; i++) {
     new_coefficients[i] *= s;
@@ -150,7 +150,7 @@ Polynomial<Degree> Polynomial<Degree>::operator*(double s) {
 }
 
 template <int Degree>
-Polynomial<Degree> Polynomial<Degree>::operator/(double s) {
+Polynomial<Degree> Polynomial<Degree>::operator/(double s) const {
   auto new_coefficients = std::array<double, Degree + 1>(coefficients);
   for (int i = 0; i < Degree + 1; i++) {
     new_coefficients[i] /= s;
@@ -186,7 +186,8 @@ Polynomial<Degree> &Polynomial<Degree>::operator/=(double s) {
   return *this;
 }
 
-template <int Degree> Polynomial<Degree> Polynomial<Degree>::scale(double s) {
+template <int Degree>
+Polynomial<Degree> Polynomial<Degree>::scale(double s) const {
   auto new_coefficients = std::array<double, Degree + 1>(coefficients);
   double f = 1.0;
   for (int i = 0; i < Degree + 1; i++) {
@@ -196,7 +197,8 @@ template <int Degree> Polynomial<Degree> Polynomial<Degree>::scale(double s) {
   return Polynomial<Degree>(new_coefficients);
 }
 
-template <int Degree> Polynomial<Degree> Polynomial<Degree>::shift(double t) {
+template <int Degree>
+Polynomial<Degree> Polynomial<Degree>::shift(double t) const {
   auto new_coefficients = std::array<double, Degree + 1>{0};
   for (int i = 0; i < Degree + 1; i++) {
     double f = 1.0;
@@ -209,7 +211,7 @@ template <int Degree> Polynomial<Degree> Polynomial<Degree>::shift(double t) {
   return Polynomial<Degree>(new_coefficients);
 }
 
-template <int Degree> double Polynomial<Degree>::operator()(double x) {
+template <int Degree> double Polynomial<Degree>::operator()(double x) const {
   double res = 0.0;
   for (int i = Degree; i > -1; i--) {
     res *= x;
@@ -218,7 +220,8 @@ template <int Degree> double Polynomial<Degree>::operator()(double x) {
   return res;
 };
 
-template <int Degree> Polynomial<Degree + 1> Polynomial<Degree>::integral() {
+template <int Degree>
+Polynomial<Degree + 1> Polynomial<Degree>::integral() const {
   Polynomial<Degree + 1> q;
   for (int i = 1; i < Degree + 2; i++) {
     q.coefficients[i] += coefficients[i - 1] / i;
@@ -226,7 +229,8 @@ template <int Degree> Polynomial<Degree + 1> Polynomial<Degree>::integral() {
   return q;
 };
 
-template <int Degree> Polynomial<Degree - 1> Polynomial<Degree>::derivative() {
+template <int Degree>
+Polynomial<Degree - 1> Polynomial<Degree>::derivative() const {
   Polynomial<Degree - 1> q;
   for (int i = 1; i < Degree + 1; i++) {
     q.coefficients[i - 1] = i * coefficients[i];
@@ -234,7 +238,8 @@ template <int Degree> Polynomial<Degree - 1> Polynomial<Degree>::derivative() {
   return q;
 };
 
-template <int Degree> double Polynomial<Degree>::integral(double a, double b) {
+template <int Degree>
+double Polynomial<Degree>::integral(double a, double b) const {
   double res = 0.0;
   double c0 = a;
   double c1 = b;
