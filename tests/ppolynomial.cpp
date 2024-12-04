@@ -496,3 +496,21 @@ TEST(PPolynomialIntegralEval, Edge) {
 
   ASSERT_EQ(expected, actual);
 }
+
+TEST(PPolynomialIntegralEval, FullInterval) {
+  Polynomial<3> p1({0, 0, 0, 0});
+  Polynomial<3> p2({1, 2, 0, 0});
+  Polynomial<3> p3({0, 1, 5, 3});
+  Polynomial<3> p4({0, 0, 0, 0});
+  std::vector<double> interval{-std::numeric_limits<double>::infinity(), 1, 4,
+                               5};
+  PPolynomial<3> p({p1, p2, p3, p4}, interval);
+
+  double a = -std::numeric_limits<double>::infinity();
+  double b = std::numeric_limits<double>::infinity();
+  double actual = p.integral(a, b);
+  double expected = p1.integral(a, 1) + p2.integral(1, 4) + p3.integral(4, 5) +
+                    p4.integral(5, b);
+
+  ASSERT_EQ(expected, actual);
+}

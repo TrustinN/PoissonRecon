@@ -19,6 +19,13 @@ template <int Degree> struct PPolynomial {
     assert(intervals.size() == polys.size());
   };
 
+  template <int Degree2>
+  PPolynomial(const PPolynomial<Degree2> &p) : intervals(p.intervals) {
+    for (const auto &pp : p.polys) {
+      polys.push_back(Polynomial<Degree>(pp));
+    }
+  };
+
   bool operator==(const PPolynomial &poly) const;
   bool operator!=(const PPolynomial &poly) const;
 
@@ -38,6 +45,7 @@ template <int Degree> struct PPolynomial {
   PPolynomial &operator*=(double s);
   PPolynomial &operator/=(double s);
 
+  // TODO: fix the scale / shift intervals
   PPolynomial scale(double s);
   PPolynomial shift(double t);
 
@@ -45,6 +53,7 @@ template <int Degree> struct PPolynomial {
 
   PPolynomial<Degree + 1> integral() const;
   PPolynomial<Degree - 1> derivative() const;
+  PPolynomial<Degree> derivative_keep_dim() const;
 
   double integral(double a, double b) const;
 };
@@ -256,6 +265,7 @@ template <int Degree> PPolynomial<Degree> PPolynomial<Degree>::scale(double s) {
   PPolynomial<Degree> q(*this);
   for (int i = 0; i < polys.size(); i++) {
     q.polys[i] = polys[i].scale(s);
+    q.intervals[i] /= s;
   }
   return q;
 };
@@ -264,6 +274,7 @@ template <int Degree> PPolynomial<Degree> PPolynomial<Degree>::shift(double t) {
   PPolynomial<Degree> q(*this);
   for (int i = 0; i < polys.size(); i++) {
     q.polys[i] = polys[i].shift(t);
+    q.intervals[i] += t;
   }
   return q;
 };
@@ -293,6 +304,15 @@ PPolynomial<Degree - 1> PPolynomial<Degree>::derivative() const {
     new_polys.push_back(polys[i].derivative());
   }
   return PPolynomial<Degree - 1>(new_polys, intervals);
+};
+
+template <int Degree>
+PPolynomial<Degree> PPolynomial<Degree>::derivative_keep_dim() const {
+  std::vector<Polynomial<Degree>> new_polys;
+  for (int i = 0; i < polys.size(); i++) {
+    new_polys.push_back(polys[i].derivative_keep_dim());
+  }
+  return PPolynomial<Degree>(new_polys, intervals);
 };
 
 template <int Degree>

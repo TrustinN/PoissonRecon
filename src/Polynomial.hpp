@@ -41,8 +41,11 @@ template <int Degree> struct Polynomial {
 
   Polynomial<Degree + 1> integral() const;
   Polynomial<Degree - 1> derivative() const;
+  Polynomial<Degree> derivative_keep_dim() const;
 
   double integral(double a, double b) const;
+  bool isZero() const;
+  bool isConstant() const;
 };
 
 template <int Degree1>
@@ -212,17 +215,24 @@ Polynomial<Degree> Polynomial<Degree>::shift(double t) const {
 }
 
 template <int Degree> double Polynomial<Degree>::operator()(double x) const {
+  if (isZero() || isConstant()) {
+    return coefficients[0];
+  }
+
   double res = 0.0;
+
   for (int i = Degree; i > -1; i--) {
     res *= x;
     res += coefficients[i];
   }
+
   return res;
 };
 
 template <int Degree>
 Polynomial<Degree + 1> Polynomial<Degree>::integral() const {
   Polynomial<Degree + 1> q;
+
   for (int i = 1; i < Degree + 2; i++) {
     q.coefficients[i] += coefficients[i - 1] / i;
   }
@@ -239,8 +249,21 @@ Polynomial<Degree - 1> Polynomial<Degree>::derivative() const {
 };
 
 template <int Degree>
+Polynomial<Degree> Polynomial<Degree>::derivative_keep_dim() const {
+  Polynomial<Degree> q;
+  for (int i = 1; i < Degree + 1; i++) {
+    q.coefficients[i - 1] = i * coefficients[i];
+  }
+  return q;
+};
+
+template <int Degree>
 double Polynomial<Degree>::integral(double a, double b) const {
   double res = 0.0;
+  if (isZero()) {
+    return res;
+  }
+
   double c0 = a;
   double c1 = b;
   for (int i = 0; i < Degree + 1; i++) {
@@ -249,6 +272,19 @@ double Polynomial<Degree>::integral(double a, double b) const {
     c1 *= b;
   }
   return res;
+}
+
+template <int Degree> bool Polynomial<Degree>::isZero() const {
+  return coefficients[0] == 0 && isConstant();
+}
+
+template <int Degree> bool Polynomial<Degree>::isConstant() const {
+  for (int i = 1; i < Degree + 1; i++) {
+    if (coefficients[i] != 0) {
+      return false;
+    }
+  }
+  return true;
 }
 
 template <int Degree>

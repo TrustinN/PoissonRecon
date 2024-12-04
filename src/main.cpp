@@ -17,8 +17,8 @@ std::ostream &operator<<(std::ostream &os, const std::array<double, 27> &arr) {
 };
 
 int main() {
-  std::vector<std::array<double, 3>> vertices = sample_sphere(10000, 1);
-  // std::vector<std::array<double, 3>> vertices = sample_box(5000, 1.5, 2, 1);
+  // std::vector<std::array<double, 3>> vertices = sample_sphere(10000, 1);
+  std::vector<std::array<double, 3>> vertices = sample_box(5000, 1.5, 2, 1);
   NormalApproximations na(vertices);
   PoissonRecon poisson(vertices, na.normals(), na.inward_normals(), 6);
   poisson.run();
