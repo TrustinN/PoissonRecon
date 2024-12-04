@@ -449,3 +449,50 @@ TEST(PPolynomialDerivative, Basic) {
 
   ASSERT_EQ(p.derivative(), q);
 }
+
+TEST(PPolynomialIntegralEval, Basic) {
+  Polynomial<3> p1({1, 1, 3, 2});
+  Polynomial<3> p2({1, 2, 0, 0});
+  Polynomial<3> p3({0, 1, 5, 3});
+  std::vector<double> interval{-std::numeric_limits<double>::infinity(), 1, 4};
+  PPolynomial<3> p({p1, p2, p3}, interval);
+
+  double a = -20;
+  double b = -8;
+  double actual = p.integral(a, b);
+  double expected = p1.integral(a, b);
+
+  ASSERT_EQ(expected, actual);
+}
+
+TEST(PPolynomialIntegralEval, MultiInterval) {
+  Polynomial<3> p1({1, 1, 3, 2});
+  Polynomial<3> p2({1, 2, 0, 0});
+  Polynomial<3> p3({0, 1, 5, 3});
+  std::vector<double> interval{-std::numeric_limits<double>::infinity(), 1, 4};
+  PPolynomial<3> p({p1, p2, p3}, interval);
+
+  double a = -20;
+  double b = 3;
+  double actual = p.integral(a, b);
+  double expected = p1.integral(a, 1) + p2.integral(1, b);
+
+  ASSERT_EQ(expected, actual);
+}
+
+TEST(PPolynomialIntegralEval, Edge) {
+  Polynomial<3> p1({1, 1, 3, 2});
+  Polynomial<3> p2({1, 2, 0, 0});
+  Polynomial<3> p3({0, 1, 5, 3});
+  Polynomial<3> p4({7, 1, 1, 3});
+  std::vector<double> interval{-std::numeric_limits<double>::infinity(), 1, 4,
+                               5};
+  PPolynomial<3> p({p1, p2, p3, p4}, interval);
+
+  double a = -2;
+  double b = 5;
+  double actual = p.integral(a, b);
+  double expected = p1.integral(a, 1) + p2.integral(1, 4) + p3.integral(4, b);
+
+  ASSERT_EQ(expected, actual);
+}

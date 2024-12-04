@@ -305,15 +305,20 @@ double PPolynomial<Degree>::integral(double a, double b) const {
     b = tmp;
   }
   double res = 0.0;
-  for (int i = intervals.size() - 1; i > 0; i--) {
+  for (int i = intervals.size() - 1; i > -1; i--) {
 
-    if (b < intervals[i]) {
-      while (a < intervals[i - 1]) {
-        res += polys[i - 1].integral(intervals[i - 1], b);
+    if (b > intervals[i]) {
+      if (a >= intervals[i]) {
+        return c * polys[i].integral(a, b);
+      }
+
+      while (a < intervals[i]) {
+        res += polys[i].integral(intervals[i], b);
+        b = intervals[i];
         i--;
       }
-      res += polys[i - 1].integral(a, intervals[i - 1]);
-      break;
+      res += polys[i].integral(a, intervals[i + 1]);
+      return c * res;
     }
   }
 
