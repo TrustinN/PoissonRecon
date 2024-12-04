@@ -26,3 +26,7 @@ gtest_discover_tests(polynomial)
 add_executable(ppolynomial ppolynomial.cpp ${UTILS})
 target_link_libraries(ppolynomial GTest::gtest_main ${VTK_LIBRARIES})
 gtest_discover_tests(ppolynomial)
+
+add_executable(bspline bspline.cpp ${UTILS})
+target_link_libraries(bspline GTest::gtest_main ${VTK_LIBRARIES})
+gtest_discover_tests(bspline)

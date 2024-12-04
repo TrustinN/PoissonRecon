@@ -45,9 +45,8 @@ template <int Degree> struct PPolynomial {
   PPolynomial &operator*=(double s);
   PPolynomial &operator/=(double s);
 
-  // TODO: fix the scale / shift intervals
-  PPolynomial scale(double s);
-  PPolynomial shift(double t);
+  PPolynomial scale(double s) const;
+  PPolynomial shift(double t) const;
 
   double operator()(double x) const;
 
@@ -260,7 +259,8 @@ PPolynomial<Degree> &PPolynomial<Degree>::operator/=(double s) {
   return *this;
 };
 
-template <int Degree> PPolynomial<Degree> PPolynomial<Degree>::scale(double s) {
+template <int Degree>
+PPolynomial<Degree> PPolynomial<Degree>::scale(double s) const {
 
   PPolynomial<Degree> q(*this);
   for (int i = 0; i < polys.size(); i++) {
@@ -270,7 +270,8 @@ template <int Degree> PPolynomial<Degree> PPolynomial<Degree>::scale(double s) {
   return q;
 };
 
-template <int Degree> PPolynomial<Degree> PPolynomial<Degree>::shift(double t) {
+template <int Degree>
+PPolynomial<Degree> PPolynomial<Degree>::shift(double t) const {
   PPolynomial<Degree> q(*this);
   for (int i = 0; i < polys.size(); i++) {
     q.polys[i] = polys[i].shift(t);

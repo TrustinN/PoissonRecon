@@ -10,7 +10,7 @@ constexpr static double MIN_OUTER_T = -1.5;
 
 static PPolynomial<2> BSpline = PPolynomial<2>(
     {Polynomial<2>(),
-     Polynomial<2>({std::pow(MAX_OUTER_T, 2) / 2.0, -MAX_OUTER_T, 0.5}),
+     Polynomial<2>({std::pow(MAX_OUTER_T, 2) / 2.0, MAX_OUTER_T, 0.5}),
      Polynomial<2>{{MAX_OUTER_T / 2.0, 0, -1.0}},
      Polynomial<2>({std::pow(MAX_OUTER_T, 2) / 2.0, -MAX_OUTER_T, 0.5}),
      Polynomial<2>()},
@@ -24,16 +24,37 @@ inline PPolynomial<Degree> basisFFactory(const PPolynomial<Degree> &p,
 };
 
 template <int Degree, int DIM = 3> struct ScalarField {
-  std::array<PPolynomial<Degree>, 3> polys{};
+  std::array<PPolynomial<Degree>, DIM> polys;
 
   ScalarField() {};
+  ScalarField(const ScalarField &sf) : polys(sf.polys) {};
+  ScalarField(std::array<PPolynomial<Degree>, DIM> polys) : polys(polys) {};
+  ScalarField(const PPolynomial<Degree> &basisF);
+  ScalarField(const PPolynomial<Degree> &basisF,
+              const std::array<double, DIM> &center);
   ScalarField(const PPolynomial<Degree> &basisF,
               const std::array<double, DIM> &center, double scale);
 
   ScalarField &partialDerivative(int dim);
   double integral() const;
-  ScalarField operator*(const ScalarField &s) const;
+  ScalarField<2 * Degree, DIM>
+  operator*(const ScalarField<Degree, DIM> &s) const;
   double innerProduct(const ScalarField<Degree, DIM> sf) const;
+};
+
+template <int Degree, int DIM>
+ScalarField<Degree, DIM>::ScalarField(const PPolynomial<Degree> &bF) {
+  for (int i = 0; i < DIM; i++) {
+    polys[i] = bF;
+  }
+};
+
+template <int Degree, int DIM>
+ScalarField<Degree, DIM>::ScalarField(const PPolynomial<Degree> &bF,
+                                      const std::array<double, DIM> &center) {
+  for (int i = 0; i < DIM; i++) {
+    polys[i] = bF.shift(center[i]);
+  }
 };
 
 template <int Degree, int DIM>
@@ -62,19 +83,19 @@ double ScalarField<Degree, DIM>::integral() const {
 };
 
 template <int Degree, int DIM>
-ScalarField<Degree, DIM>
+ScalarField<2 * Degree, DIM>
 ScalarField<Degree, DIM>::operator*(const ScalarField<Degree, DIM> &sf) const {
-  ScalarField<Degree, DIM> res;
+  std::array<PPolynomial<2 * Degree>, DIM> new_polys;
   for (int i = 0; i < DIM; i++) {
-    res.polys[i] = sf.polys[i] * polys[i];
+    new_polys[i] = polys[i] * sf.polys[i];
   }
-  return res;
+  return ScalarField<2 * Degree, DIM>(new_polys);
 };
 
 template <int Degree, int DIM>
 double ScalarField<Degree, DIM>::innerProduct(
     const ScalarField<Degree, DIM> sf) const {
-  ScalarField<Degree, DIM> prod = sf * *this;
+  ScalarField<2 * Degree, DIM> prod = *this * sf;
   return prod.integral();
 };
 
