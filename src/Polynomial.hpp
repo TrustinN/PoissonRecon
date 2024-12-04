@@ -3,6 +3,7 @@
 
 #include <array>
 #include <cassert>
+#include <iostream>
 
 template <int Degree> struct Polynomial {
   Polynomial() {};
@@ -96,13 +97,13 @@ template <int Degree>
 template <int Degree2>
 Polynomial<Degree + Degree2>
 Polynomial<Degree>::operator*(const Polynomial<Degree2> &poly) {
-  std::array<double, Degree + Degree2 + 1> new_coefficients;
+  Polynomial<Degree + Degree2> q;
   for (int i = 0; i < Degree + 1; i++) {
     for (int j = 0; j < Degree2 + 1; j++) {
-      new_coefficients[i + j] += coefficients[i] * poly.coefficients[j];
+      q.coefficients[i + j] += coefficients[i] * poly.coefficients[j];
     }
   }
-  return Polynomial(new_coefficients);
+  return q;
 };
 
 template <int Degree>
@@ -196,11 +197,11 @@ template <int Degree> Polynomial<Degree> Polynomial<Degree>::scale(double s) {
 }
 
 template <int Degree> Polynomial<Degree> Polynomial<Degree>::shift(double t) {
-  auto new_coefficients = std::array<double, Degree + 1>(coefficients);
+  auto new_coefficients = std::array<double, Degree + 1>{0};
   for (int i = 0; i < Degree + 1; i++) {
     double f = 1.0;
     for (int j = i; j > -1; j--) {
-      new_coefficients[j] += f * new_coefficients[i];
+      new_coefficients[j] += f * coefficients[i];
       f *= -t * j;
       f /= i - j + 1;
     }
@@ -209,7 +210,7 @@ template <int Degree> Polynomial<Degree> Polynomial<Degree>::shift(double t) {
 }
 
 template <int Degree> double Polynomial<Degree>::operator()(double x) {
-  double res;
+  double res = 0.0;
   for (int i = Degree; i > -1; i--) {
     res *= x;
     res += coefficients[i];
@@ -218,19 +219,19 @@ template <int Degree> double Polynomial<Degree>::operator()(double x) {
 };
 
 template <int Degree> Polynomial<Degree + 1> Polynomial<Degree>::integral() {
-  std::array<double, Degree + 1> new_coefficients;
+  Polynomial<Degree + 1> q;
   for (int i = 1; i < Degree + 2; i++) {
-    new_coefficients[i] += coefficients[i - 1] / i;
+    q.coefficients[i] += coefficients[i - 1] / i;
   }
-  return Polynomial<Degree + 1>(new_coefficients);
+  return q;
 };
 
 template <int Degree> Polynomial<Degree - 1> Polynomial<Degree>::derivative() {
-  std::array<double, Degree - 1> new_coefficients;
-  for (int i = 0; i < Degree; i++) {
-    new_coefficients[i] += i * coefficients[i + 1];
+  Polynomial<Degree - 1> q;
+  for (int i = 1; i < Degree + 1; i++) {
+    q.coefficients[i - 1] = i * coefficients[i];
   }
-  return Polynomial<Degree - 1>(new_coefficients);
+  return q;
 };
 
 template <int Degree> double Polynomial<Degree>::integral(double a, double b) {
@@ -243,6 +244,19 @@ template <int Degree> double Polynomial<Degree>::integral(double a, double b) {
     c1 *= b;
   }
   return res;
+}
+
+template <int Degree>
+std::ostream &operator<<(std::ostream &os, const Polynomial<Degree> &p) {
+  if (Degree > -1) {
+    os << p.coefficients[0];
+  }
+  for (int i = 1; i < Degree + 1; i++) {
+    if (p.coefficients[i] != 0) {
+      os << " + " << p.coefficients[i] << "x^" << i;
+    }
+  }
+  return os;
 }
 
 #endif

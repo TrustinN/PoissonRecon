@@ -19,6 +19,10 @@ add_executable(normal normal.cpp ../src/Normal.cpp ../src/RiemannianGraph.cpp
 target_link_libraries(normal GTest::gtest_main ${VTK_LIBRARIES})
 gtest_discover_tests(normal)
 
-add_executable(polynomial polynomial.cpp ../src/PPolynomial.cpp ${UTILS})
+add_executable(polynomial polynomial.cpp ${UTILS})
 target_link_libraries(polynomial GTest::gtest_main ${VTK_LIBRARIES})
 gtest_discover_tests(polynomial)
+
+add_executable(ppolynomial ppolynomial.cpp ${UTILS})
+target_link_libraries(ppolynomial GTest::gtest_main ${VTK_LIBRARIES})
+gtest_discover_tests(ppolynomial)
