@@ -71,7 +71,7 @@ void PoissonRecon::run() {
   _v = Eigen::VectorXd::Zero(node_count);
 
   std::vector<Eigen::Triplet<double>> triplet_list;
-  triplet_list.reserve(node_count);
+  triplet_list.reserve(node_count * 8);
 
   for (int i = 0; i < node_count; i++) {
     double res = 0;

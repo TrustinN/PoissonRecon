@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
   vtkNew<vtkPolyDataMapper> mapper;
   mapper->SetInputConnection(vertexFilter->GetOutputPort());
   mapper->SetLookupTable(rainbowBlueRedLut);
-  mapper->SetScalarRange(-.1, .1);
+  mapper->SetScalarRange(-.3, .3);
   mapper->SetColorModeToMapScalars();
   mapper->SetScalarModeToUsePointData();
 

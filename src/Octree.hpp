@@ -107,6 +107,7 @@ public:
   Node *root() const { return _root; };
   int size() const { return _size; };
   int node_count() const;
+  int max_depth() const { return _max_depth; };
   std::vector<int> deleted_ids() const { return _deleted_point_ids; };
   std::vector<std::array<double, 3>> points() const { return _points; };
 };

@@ -11,20 +11,11 @@ public:
   // For each node, we find all 26 neighboring nodes of the same depth within
   // distance d
   std::vector<Node *> Neighbors(Node *node);
-
-  std::vector<std::array<double, 3>> field_centers() const {
-    return _field_centers;
-  };
-  std::vector<std::array<double, 3>> field_normals() const {
-    return _field_normals;
-  };
-
-private:
-  std::vector<std::array<double, 3>> _field_centers;
-  std::vector<std::array<double, 3>> _field_normals;
+  std::vector<int> RadiusSearch(const std::array<double, 3> &center, int r);
 };
 
 Node *seek_node(Node *node, const std::array<double, 3> &p);
+Node *seek_node(Node *start, const std::array<double, 3> &p, int depth);
 std::vector<std::array<double, 3>> nearest_8(Node *node,
                                              const std::array<double, 3> &p);
 std::vector<std::array<double, 3>> nearest_27(Node *node);

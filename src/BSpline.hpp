@@ -35,7 +35,7 @@ template <int Degree, int DIM = 3> struct ScalarField {
   ScalarField(const PPolynomial<Degree> &basisF,
               const std::array<double, DIM> &center, double scale);
 
-  ScalarField &partialDerivative(int dim);
+  ScalarField partialDerivative(int dim) const;
   double integral() const;
   ScalarField<2 * Degree, DIM>
   operator*(const ScalarField<Degree, DIM> &s) const;
@@ -67,9 +67,11 @@ ScalarField<Degree, DIM>::ScalarField(const PPolynomial<Degree> &bF,
 };
 
 template <int Degree, int DIM>
-ScalarField<Degree, DIM> &ScalarField<Degree, DIM>::partialDerivative(int dim) {
-  polys[dim] = polys[dim].derivative_keep_dim();
-  return *this;
+ScalarField<Degree, DIM>
+ScalarField<Degree, DIM>::partialDerivative(int dim) const {
+  ScalarField<Degree, DIM> q(*this);
+  q.polys[dim] = q.polys[dim].derivative_keep_dim();
+  return q;
 };
 
 template <int Degree, int DIM>

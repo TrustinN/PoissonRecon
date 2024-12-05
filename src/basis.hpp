@@ -19,10 +19,6 @@ struct laplacianField {
   laplacianField();
 };
 
-double integral_f1_f2(double t);
-double integral_df1_f2(double t);
-double integral_d2f1_f2(double t);
-
 template <typename field_type>
 std::array<double, 3> projection(field_type field, Node *n1, Node *n2) {
 

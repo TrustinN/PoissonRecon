@@ -11,7 +11,5 @@ TEST(BSplineIntegral, Basic) {
   ScalarField<2> sf1(bs);
   ScalarField<2> sf2(bs, std::array<double, 3>{n_center, 0, 0});
 
-  std::cout << bs << std::endl;
-
   ASSERT_EQ(sf1.innerProduct(sf2), 0.00833333 * std::pow(.55, 2));
 }
