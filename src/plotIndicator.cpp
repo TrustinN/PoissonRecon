@@ -6,6 +6,11 @@
 int main(int argc, char **argv) {
 
   int depth = 6;
+  int end = -1;
+  if (argc > 1) {
+    depth = std::stoi(argv[1]);
+    end = depth - 1;
+  }
 
   std::vector<std::array<double, 3>> samples = load_points("points.txt");
   vtkNew<vtkPoints> points2 = load_points(samples);
@@ -14,7 +19,7 @@ int main(int argc, char **argv) {
   vtkNew<vtkDoubleArray> pointScalars;
   pointScalars->SetNumberOfComponents(1);
 
-  for (int i = depth; i > -1; i--) {
+  for (int i = depth; i > end; i--) {
     // retrieve values
 
     std::vector<std::array<double, 3>> vertices =
@@ -57,7 +62,7 @@ int main(int argc, char **argv) {
   vtkNew<vtkPolyDataMapper> mapper;
   mapper->SetInputConnection(vertexFilter->GetOutputPort());
   mapper->SetLookupTable(rainbowBlueRedLut);
-  // mapper->SetScalarRange(-.3, .3);
+  mapper->SetScalarRange(-.3, .3);
   mapper->SetColorModeToMapScalars();
   mapper->SetScalarModeToUsePointData();
 

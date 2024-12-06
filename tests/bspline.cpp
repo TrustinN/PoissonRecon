@@ -11,7 +11,28 @@ TEST(BSplineIntegral, Basic) {
   ScalarField<2> sf1(bs);
   ScalarField<2> sf2(bs, std::array<double, 3>{n_center, 0, 0});
 
-  // ASSERT_EQ(sf1.innerProduct(sf2), 0.00833333 * std::pow(.55, 2));
+  ASSERT_EQ(sf1.innerProduct(sf2), 0.00833333 * std::pow(.55, 2));
+}
+
+TEST(BSplineConstruct, Shift) {
+  // ----|--------|--------|----|
+  // 1.5 1.0      0        1.0  1.5
+
+  std::array<double, 3> center = {2.25, 0, 0};
+  ScalarField<2> sf2(BSpline, center);
+
+  ASSERT_EQ(sf2(center), std::pow(0.75, 3));
+}
+
+TEST(BSplineConstruct, Scale) {
+  //    |--|----|----|--|
+  // -.75 -.5   0   .5 .75
+
+  double width = .5;
+  std::array<double, 3> center = {0, 0, 0};
+  ScalarField<2> sf2(BSpline, center, 1 / width);
+
+  ASSERT_EQ(sf2({0.75, 0.75, 0.75}), 0);
 }
 
 TEST(BSplineIntegral, NonOverlappingSupport) {
@@ -30,8 +51,6 @@ TEST(BSplineIntegral, NonOverlappingSupport) {
   double width2 = .5;
   std::array<double, 3> center2 = {2.25, 0, 0};
   ScalarField<2> sf2(bs, center2, 1 / width2);
-  std::cout << sf1 << std::endl;
-  std::cout << sf2 << std::endl;
 
   ASSERT_EQ(sf1.innerProduct(sf2), 0.0);
 }

@@ -1,5 +1,6 @@
 #include "Normal.hpp"
 #include "PoissonRecon.hpp"
+#include "utils/io.hpp"
 #include "utils/sampling.hpp"
 #include <iostream>
 
@@ -18,12 +19,19 @@ std::ostream &operator<<(std::ostream &os, const std::array<double, 27> &arr) {
 };
 
 int main() {
-  std::vector<std::array<double, 3>> vertices = sample_sphere(5000, 1);
-  // std::vector<std::array<double, 3>> vertices = sample_box(5000, 1.5, 2, 1);
+  // std::vector<std::array<double, 3>> vertices = sample_sphere(5000, 50);
+  std::vector<std::array<double, 3>> vertices = sample_box(5000, 15, 20, 10);
   NormalApproximations na(vertices);
   PoissonRecon poisson(vertices, na.normals(), na.inward_normals(), 6);
   poisson.run();
   poisson.write();
+
+  // pOctree ptree = poisson.octree();
+  // Node *root = ptree.root();
+  // std::vector<int> v_field_nodes_active =
+  //     ptree.RadiusSearch(root->center, 1.5 * root->width);
+  // std::cout << v_field_nodes_active << std::endl;
+  // std::cout << root->is_leaf << std::endl;
 
   // divergenceField df;
   // laplacianField lf;

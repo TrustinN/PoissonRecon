@@ -57,7 +57,7 @@ void PoissonRecon::computeVectorField() {
 
         int node_id = node->depth_id;
         _field_normals[node_id] =
-            _field_normals[node_id] + weight * _normals[p_id];
+            _field_normals[node_id] + weight * _inward_normals[p_id];
       }
     }
   };

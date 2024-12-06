@@ -15,6 +15,7 @@ HRefine::HRefine(pOctree tree,
 void HRefine::Refine() {
   int depths = tree.max_depth() + 1;
   coeff[0] = {-1};
+  setCoeffAtDepth(computeCoeff(getCoeffAtDepth(0), tree.getNodesAtDepth(0)), 0);
   for (int i = 1; i < depths; i++) {
     std::vector<Node *> coarser_nodes = tree.getNodesAtDepth(i - 1);
     std::vector<Node *> cur_nodes = tree.getNodesAtDepth(i);
@@ -68,7 +69,6 @@ std::vector<double> HRefine::computeCoeff(std::vector<double> &start,
                                    1 / cur_node->width);
     std::vector<int> v_field_nodes_active =
         tree.RadiusSearch(cur_node->center, 1.5 * cur_node->width);
-    // std::cout << v_field_nodes_active.size() << std::endl;
 
     // inner product between gradient of vec field and Node basis
     double v_i = 0.0;
@@ -76,16 +76,16 @@ std::vector<double> HRefine::computeCoeff(std::vector<double> &start,
       Node *v_field_node = v_field_nodes[ii];
       ScalarField<2> v_field_basisf(basis, v_field_node->center,
                                     1 / v_field_node->width);
-      std::array<double, 3> divergence;
-      for (int i = 0; i < 3; i++) {
-        divergence[i] =
-            cur_node_basisf.innerProduct(v_field_basisf.partialDerivative(i));
-      }
+      std::array<double, 3> divergence{
+          cur_node_basisf.innerProduct(v_field_basisf.partialDerivative(0)),
+          cur_node_basisf.innerProduct(v_field_basisf.partialDerivative(1)),
+          cur_node_basisf.innerProduct(v_field_basisf.partialDerivative(2))};
       v_i += dot(divergence, _vector_field_normals[ii]);
     }
 
-    v[i] = 200000 * v_i;
+    v[i] = 20000 * v_i;
   }
+
   std::cout << "Computed v!" << std::endl;
 
   std::vector<Eigen::Triplet<double>> triplet_list;
@@ -95,23 +95,29 @@ std::vector<double> HRefine::computeCoeff(std::vector<double> &start,
     Node *cur_node = nodes[i];
     std::vector<std::array<double, 3>> neighbor_c = nearest_27(cur_node);
     std::vector<Node *> neighbors;
-    for (int i = 0; i < neighbor_c.size(); i++) {
-      Node *found = seek_node(cur_node, neighbor_c[i], cur_node->depth);
-      neighbors.push_back(found);
+    for (int j = 0; j < neighbor_c.size(); j++) {
+      Node *found = seek_node(cur_node, neighbor_c[j], cur_node->depth);
+      if (found != nullptr) {
+        neighbors.push_back(found);
+      }
     }
 
     // inner product of node and neighboring nodes
     ScalarField<2> cur_node_basisf(basis, cur_node->center,
                                    1 / cur_node->width);
+    ScalarField<2> cnb_dx =
+        cur_node_basisf.partialDerivative(0).partialDerivative(0);
+    ScalarField<2> cnb_dy =
+        cur_node_basisf.partialDerivative(1).partialDerivative(1);
+    ScalarField<2> cnb_dz =
+        cur_node_basisf.partialDerivative(2).partialDerivative(2);
+
     for (Node *neighbor : neighbors) {
       ScalarField<2> neighbor_basisf(basis, neighbor->center,
                                      1 / neighbor->width);
-      double L_ij = 0.0;
-      for (int i = 0; i < 3; i++) {
-        L_ij += cur_node_basisf.innerProduct(
-            neighbor_basisf.partialDerivative(i).partialDerivative(i));
-      }
-      assert(neighbor->depth == cur_node->depth);
+      double L_ij = cnb_dx.innerProduct(neighbor_basisf) +
+                    cnb_dy.innerProduct(neighbor_basisf) +
+                    cnb_dz.innerProduct(neighbor_basisf);
       triplet_list.push_back(
           Eigen::Triplet<double>(cur_node->depth_id, neighbor->depth_id, L_ij));
     }
@@ -148,6 +154,8 @@ void HRefine::projectRefine(std::vector<double> &coarseCoeff,
   //       contribution += fineCoeff[child->depth_id];
   //     }
   //   }
+  //   std::cout << "Error: " << std::abs(contribution - coarseCoeff[i])
+  //             << std::endl;
   //   coarseCoeff[i] -= contribution * factor;
   //   double res = coarseCoeff[i] * factor;
   //   for (Node *child : children) {

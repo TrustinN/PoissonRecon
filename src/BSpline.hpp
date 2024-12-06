@@ -39,6 +39,7 @@ template <int Degree, int DIM = 3> struct ScalarField {
   double integral() const;
   ScalarField<2 * Degree, DIM>
   operator*(const ScalarField<Degree, DIM> &s) const;
+  double operator()(const std::array<double, 3> &p) const;
   double innerProduct(const ScalarField<Degree, DIM> sf) const;
 };
 
@@ -92,6 +93,16 @@ ScalarField<Degree, DIM>::operator*(const ScalarField<Degree, DIM> &sf) const {
     new_polys[i] = polys[i] * sf.polys[i];
   }
   return ScalarField<2 * Degree, DIM>(new_polys);
+};
+
+template <int Degree, int DIM>
+double
+ScalarField<Degree, DIM>::operator()(const std::array<double, 3> &p) const {
+  double res = 1.0;
+  for (int i = 0; i < DIM; i++) {
+    res *= polys[i](p[i]);
+  }
+  return res;
 };
 
 template <int Degree, int DIM>

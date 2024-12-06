@@ -23,7 +23,7 @@ Node *seek_node(Node *node, const std::array<double, 3> &p) {
 Node *seek_node(Node *start, const std::array<double, 3> &p, int depth) {
 
   Node *r_node = start;
-  while (r_node->depth != depth) {
+  while (r_node->depth != depth && r_node != nullptr) {
     int idx = node_index_map(r_node, p);
     r_node = r_node->children.nodes[idx];
   };

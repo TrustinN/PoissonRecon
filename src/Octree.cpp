@@ -1,4 +1,5 @@
 #include "Octree.hpp"
+#include "utils/io.hpp"
 #include "utils/linalg.hpp"
 #include <array>
 #include <cassert>
@@ -352,6 +353,7 @@ std::vector<int> Octree::RadiusSearch(const std::array<double, 3> &center,
   std::priority_queue<pqData2, std::vector<pqData2>, std::greater<pqData2>>
       min_pq;
   min_pq.push(pqData2(0, _root));
+  double threshold = std::pow(r, 2);
 
   while (!min_pq.empty()) {
     pqData2 data = min_pq.top();
@@ -368,7 +370,7 @@ std::vector<int> Octree::RadiusSearch(const std::array<double, 3> &center,
         Node *child = children[i];
         if (child != nullptr) {
           double dist = distance(center, child);
-          if (dist <= r) {
+          if (dist <= threshold) {
             min_pq.push(pqData2(dist, child));
           }
         }
