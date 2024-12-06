@@ -9,6 +9,17 @@ TEST(PPolynomialConstruct, Default) {
   }
 }
 
+TEST(PPolynomialConstruct, AddDefault) {
+  PPolynomial<3> p;
+  Polynomial<3> q1({1});
+  Polynomial<3> q2({1, 2});
+  Polynomial<3> q3({0, 1, 1, 3});
+  std::vector<double> interval{-std::numeric_limits<double>::infinity(), 1, 4};
+  PPolynomial<3> q({q1, q2, q3}, interval);
+  PPolynomial<3> s = q + p;
+  ASSERT_EQ(q, s);
+}
+
 TEST(PPolynomialConstruct, NonDefault) {
   Polynomial<3> q1({1});
   Polynomial<3> q2({1, 2});

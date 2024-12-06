@@ -24,7 +24,7 @@ inline PPolynomial<Degree> basisFFactory(const PPolynomial<Degree> &p,
 };
 
 template <int Degree, int DIM = 3> struct ScalarField {
-  std::array<PPolynomial<Degree>, DIM> polys;
+  std::array<PPolynomial<Degree>, DIM> polys{PPolynomial<Degree>()};
 
   ScalarField() {};
   ScalarField(const ScalarField &sf) : polys(sf.polys) {};
@@ -37,8 +37,13 @@ template <int Degree, int DIM = 3> struct ScalarField {
 
   ScalarField partialDerivative(int dim) const;
   double integral() const;
+
   ScalarField<2 * Degree, DIM>
   operator*(const ScalarField<Degree, DIM> &s) const;
+
+  ScalarField<Degree, DIM> &operator+=(const ScalarField<Degree, DIM> &s);
+  ScalarField<Degree, DIM> &operator*=(double s);
+
   double operator()(const std::array<double, 3> &p) const;
   double innerProduct(const ScalarField<Degree, DIM> sf) const;
 };
@@ -93,6 +98,23 @@ ScalarField<Degree, DIM>::operator*(const ScalarField<Degree, DIM> &sf) const {
     new_polys[i] = polys[i] * sf.polys[i];
   }
   return ScalarField<2 * Degree, DIM>(new_polys);
+};
+
+template <int Degree, int DIM>
+ScalarField<Degree, DIM> &
+ScalarField<Degree, DIM>::operator+=(const ScalarField<Degree, DIM> &s) {
+  for (int i = 0; i < DIM; i++) {
+    // TODO: maybe make this a true +=
+    polys[i] = polys[i] + s.polys[i];
+  }
+  return *this;
+};
+template <int Degree, int DIM>
+ScalarField<Degree, DIM> &ScalarField<Degree, DIM>::operator*=(double s) {
+  for (int i = 0; i < DIM; i++) {
+    polys[i] *= s;
+  }
+  return *this;
 };
 
 template <int Degree, int DIM>

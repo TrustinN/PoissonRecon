@@ -1,7 +1,7 @@
 #ifndef POISSON_RECON_HPP
 #define POISSON_RECON_HPP
 
-#include "basis.hpp"
+#include "HRefine.hpp"
 #include "pOctree.hpp"
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -23,6 +23,7 @@ public:
   auto field_normals() const { return _field_normals; };
   void computeVectorField();
   double evaluateDivergence(const std::array<double, 3> &point);
+  double getIsoValue(const std::array<double, 3> &p) const;
 
 private:
   int _depth;
@@ -35,13 +36,10 @@ private:
   std::vector<std::array<double, 3>> _field_centers;
 
   pOctree _octree;
-  divergenceField _divergence_field;
-  laplacianField _laplacian_field;
 
-  // The system to be solved is _L * _x = _v
-  Eigen::SparseMatrix<double, Eigen::ColMajor> _L;
-  Eigen::VectorXd _x;
-  Eigen::VectorXd _v;
+  std::vector<std::vector<double>> _coeff;
+  std::vector<std::vector<ScalarField<2>>> _scalar_fields;
+  ScalarField<2> _indicator_function;
 };
 
 #endif

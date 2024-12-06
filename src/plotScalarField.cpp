@@ -155,8 +155,10 @@ int main(int argc, char **argv) {
 
     std::vector<std::array<double, 3>> vertices =
         load_points("data/centers_depth_" + std::to_string(i) + ".txt");
+    // std::vector<double> weights =
+    //     loadVectorFromFile("data/x_depth_" + std::to_string(i) + ".txt");
     std::vector<double> weights =
-        loadVectorFromFile("data/x_depth_" + std::to_string(i) + ".txt");
+        loadVectorFromFile("data/iso_vals_depth_" + std::to_string(i) + ".txt");
     std::vector<double> widths =
         loadVectorFromFile("data/widths_depth_" + std::to_string(i) + ".txt");
 

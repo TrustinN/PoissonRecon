@@ -117,9 +117,9 @@ Node *Octree::build(std::vector<id_point> points, std::array<double, 3> center,
               depth == _max_depth || points.size() == 0;
   };
   Node *ret_node = new Node(points, center, width, is_leaf, depth);
+  register_node(ret_node);
 
   if (is_leaf) {
-    register_node(ret_node);
     return ret_node;
   }
 
