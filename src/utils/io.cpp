@@ -87,6 +87,29 @@ void writeVectorToFile(const Eigen::VectorXd &vec,
   }
 }
 
+void writeVectorToFile(const std::vector<double> &vec,
+                       const std::string &filename) {
+  std::ofstream file(filename);
+  if (!file.is_open()) {
+    std::cerr << "Failed to open file: " << filename << std::endl;
+    return;
+  }
+
+  if (vec.size() > 0) {
+    file << vec[0];
+    for (size_t i = 1; i < vec.size(); ++i) {
+      file << ", " << vec[i];
+    }
+  }
+
+  file.close();
+  if (file.good()) {
+    std::cout << "Vector successfully written to " << filename << std::endl;
+  } else {
+    std::cerr << "Error occurred while writing to the file." << std::endl;
+  }
+}
+
 std::vector<double> loadVectorFromFile(const std::string &filename) {
   std::vector<double> vec;
   std::ifstream file(filename);

@@ -195,7 +195,7 @@ Polynomial<Degree> Polynomial<Degree>::scale(double s) const {
   double f = 1.0;
   for (int i = 0; i < Degree + 1; i++) {
     new_coefficients[i] *= f;
-    f /= s;
+    f *= s;
   }
   return Polynomial<Degree>(new_coefficients);
 }

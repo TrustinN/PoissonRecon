@@ -4,19 +4,38 @@
 #include <vector>
 
 int main(int argc, char **argv) {
-  // retrieve values
-  std::vector<std::array<double, 3>> vertices = load_points("centers.txt");
+
+  int depth = 6;
+
   std::vector<std::array<double, 3>> samples = load_points("points.txt");
-  std::vector<double> weights = loadVectorFromFile("x_normalized.txt");
-
-  vtkNew<vtkPoints> points = load_points(vertices);
   vtkNew<vtkPoints> points2 = load_points(samples);
-  vtkNew<vtkDoubleArray> pointScalars = load_scalars(weights);
 
-  double range[2];
-  pointScalars->GetRange(range);
-  std::cout << "Scalar Range: [" << range[0] << ", " << range[1] << "]"
-            << std::endl;
+  vtkNew<vtkPoints> points;
+  vtkNew<vtkDoubleArray> pointScalars;
+  pointScalars->SetNumberOfComponents(1);
+
+  for (int i = depth; i > -1; i--) {
+    // retrieve values
+
+    std::vector<std::array<double, 3>> vertices =
+        load_points("data/centers_depth_" + std::to_string(i) + ".txt");
+    std::vector<double> weights =
+        loadVectorFromFile("data/x_depth_" + std::to_string(i) + ".txt");
+
+    for (int j = 0; j < vertices.size(); j++) {
+      std::array<double, 3> p = vertices[j];
+      points->InsertNextPoint(p[0], p[1], p[2]);
+    }
+
+    for (int j = 0; j < weights.size(); j++) {
+      pointScalars->InsertNextValue(weights[j]);
+    }
+
+    double range[2];
+    pointScalars->GetRange(range);
+    std::cout << "Scalar Range: [" << range[0] << ", " << range[1] << "]"
+              << std::endl;
+  }
 
   // data here
   vtkNew<vtkPolyData> polyData;
@@ -38,7 +57,7 @@ int main(int argc, char **argv) {
   vtkNew<vtkPolyDataMapper> mapper;
   mapper->SetInputConnection(vertexFilter->GetOutputPort());
   mapper->SetLookupTable(rainbowBlueRedLut);
-  mapper->SetScalarRange(-.3, .3);
+  // mapper->SetScalarRange(-.3, .3);
   mapper->SetColorModeToMapScalars();
   mapper->SetScalarModeToUsePointData();
 

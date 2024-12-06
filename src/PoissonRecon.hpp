@@ -1,10 +1,10 @@
 #ifndef POISSON_RECON_HPP
 #define POISSON_RECON_HPP
 
-#include "Eigen/Dense"
-#include "Eigen/Sparse"
 #include "basis.hpp"
 #include "pOctree.hpp"
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
 #include <array>
 #include <vector>
 
@@ -27,7 +27,7 @@ public:
 private:
   int _depth;
   std::vector<std::array<double, 3>> _points;
-  std::vector<std::array<double, 3>> _centers;
+  std::vector<std::vector<std::array<double, 3>>> _centers;
   std::vector<std::array<double, 3>> _normals;
   std::vector<std::array<double, 3>> _inward_normals;
 

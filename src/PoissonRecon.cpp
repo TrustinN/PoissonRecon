@@ -1,4 +1,6 @@
 #include "PoissonRecon.hpp"
+#include "BSpline.hpp"
+#include "HRefine.hpp"
 #include "utils/io.hpp"
 #include <Eigen/SparseQR>
 
@@ -60,62 +62,84 @@ void PoissonRecon::computeVectorField() {
     }
   };
 }
-
 void PoissonRecon::run() {
+  HRefine hr(_octree, _field_normals, BSpline);
+  hr.Refine();
+  std::vector<double> leaf_coeff = hr.getCoeffAtDepth(_depth);
+  _x = Eigen::Map<Eigen::VectorXd>(leaf_coeff.data(), leaf_coeff.size());
+  for (int i = 0; i < _depth + 1; i++) {
+    std::vector<Node *> cur_nodes = _octree.getNodesAtDepth(i);
+    std::vector<std::array<double, 3>> centers;
+    for (Node *node : cur_nodes) {
+      centers.push_back(node->center);
+    }
+    _centers.push_back(centers);
+  }
 
-  // get depth d nodes
-  std::vector<Node *> nodes = _octree.getNodesAtDepth(_depth);
-  int node_count = nodes.size();
-
-  _centers = std::vector<std::array<double, 3>>(node_count);
-  _v = Eigen::VectorXd::Zero(node_count);
-
-  std::vector<Eigen::Triplet<double>> triplet_list;
-  triplet_list.reserve(node_count * 8);
-
-  for (int i = 0; i < node_count; i++) {
-    double res = 0;
-    Node *node = nodes[i];
-    std::vector<Node *> neighbors = _octree.Neighbors(node);
-    for (Node *neighbor : neighbors) {
-      res += dot(projection(_divergence_field, node, neighbor),
-                 _field_normals[neighbor->depth_id]);
-      std::array<double, 3> l_p = projection(_laplacian_field, node, neighbor);
-      double entry = l_p[0] + l_p[1] + l_p[2];
-      if (std::abs(entry) > TOL) {
-        triplet_list.push_back(
-            Eigen::Triplet<double>(node->depth_id, neighbor->depth_id, entry));
-      }
-    };
-    _centers[i] = node->center;
-    _v[i] = res;
-  };
-
-  _L = Eigen::SparseMatrix<double>(node_count, node_count);
-  _L.setFromTriplets(triplet_list.begin(), triplet_list.end());
-
-  // solve the system for x
-  Eigen::ConjugateGradient<Eigen::SparseMatrix<double>,
-                           Eigen::Lower | Eigen::Upper,
-                           Eigen::DiagonalPreconditioner<double>>
-      solver;
-  solver.compute(_L);
-  _x = solver.solve(_v);
+  for (int i = 0; i < _depth + 1; i++) {
+    save_points(_centers[i],
+                "data/centers_depth_" + std::to_string(i) + ".txt");
+    writeVectorToFile(hr.coeff[i],
+                      "data/x_depth_" + std::to_string(i) + ".txt");
+  }
 }
 
+//
+// void PoissonRecon::run() {
+//
+//   // get depth d nodes
+//   std::vector<Node *> nodes = _octree.getNodesAtDepth(_depth);
+//   int node_count = nodes.size();
+//
+//   _centers = std::vector<std::array<double, 3>>(node_count);
+//   _v = Eigen::VectorXd::Zero(node_count);
+//
+//   std::vector<Eigen::Triplet<double>> triplet_list;
+//   triplet_list.reserve(node_count * 8);
+//
+//   for (int i = 0; i < node_count; i++) {
+//     double res = 0;
+//     Node *node = nodes[i];
+//     std::vector<Node *> neighbors = _octree.Neighbors(node);
+//     for (Node *neighbor : neighbors) {
+//       res += dot(projection(_divergence_field, node, neighbor),
+//                  _field_normals[neighbor->depth_id]);
+//       std::array<double, 3> l_p = projection(_laplacian_field, node,
+//       neighbor); double entry = l_p[0] + l_p[1] + l_p[2]; if (std::abs(entry)
+//       > TOL) {
+//         triplet_list.push_back(
+//             Eigen::Triplet<double>(node->depth_id, neighbor->depth_id,
+//             entry));
+//       }
+//     };
+//     _centers[i] = node->center;
+//     _v[i] = res;
+//   };
+//
+//   _L = Eigen::SparseMatrix<double>(node_count, node_count);
+//   _L.setFromTriplets(triplet_list.begin(), triplet_list.end());
+//
+//   // solve the system for x
+//   Eigen::ConjugateGradient<Eigen::SparseMatrix<double>,
+//                            Eigen::Lower | Eigen::Upper,
+//                            Eigen::DiagonalPreconditioner<double>>
+//       solver;
+//   solver.compute(_L);
+//   _x = solver.solve(_v);
+// }
+
 void PoissonRecon::write() {
-  int node_count = _centers.size();
-  save_points(_centers, "centers.txt");
+  // int node_count = _centers.size();
   save_points(_points, "points.txt");
+  //
+  // std::cout << "Node count: " << node_count << std::endl;
+  // std::cout << "Matrix size: " << node_count * node_count << std::endl;
+  // std::cout << "Num non-zero entries: " << _L.nonZeros() << std::endl;
+  //
+  // save_sparse_matrix(_L, "L.txt");
+  // writeVectorToFile(_v, "v.txt");
 
-  std::cout << "Node count: " << node_count << std::endl;
-  std::cout << "Matrix size: " << node_count * node_count << std::endl;
-  std::cout << "Num non-zero entries: " << _L.nonZeros() << std::endl;
-
-  save_sparse_matrix(_L, "L.txt");
-  writeVectorToFile(_v, "v.txt");
-
-  double max_entry = _x.cwiseAbs().maxCoeff();
-  writeVectorToFile(_x, "x.txt");
-  writeVectorToFile(_x / max_entry, "x_normalized.txt");
+  // double max_entry = _x.cwiseAbs().maxCoeff();
+  // writeVectorToFile(_x, "x.txt");
+  // writeVectorToFile(_x / max_entry, "x_normalized.txt");
 }

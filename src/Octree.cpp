@@ -2,6 +2,7 @@
 #include "utils/linalg.hpp"
 #include <array>
 #include <cassert>
+#include <iostream>
 #include <queue>
 #include <vector>
 
@@ -117,8 +118,6 @@ Node *Octree::build(std::vector<id_point> points, std::array<double, 3> center,
   Node *ret_node = new Node(points, center, width, is_leaf, depth);
 
   if (is_leaf) {
-    // ret_node->depth_id = getNodesAtDepth(depth).size();
-    // getNodesAtDepth(depth).push_back(ret_node);
     register_node(ret_node);
     return ret_node;
   }
@@ -331,3 +330,50 @@ int Octree::node_count() const {
   }
   return total;
 }
+
+struct pqData2 {
+  double priority;
+  Node *node;
+
+  pqData2(double p, Node *node) : priority(p), node(node) {};
+
+  friend bool operator<(const pqData2 &lhs, const pqData2 &rhs) {
+    return lhs.priority < rhs.priority;
+  }
+
+  friend bool operator>(const pqData2 &lhs, const pqData2 &rhs) {
+    return lhs.priority > rhs.priority;
+  }
+};
+
+std::vector<int> Octree::RadiusSearch(const std::array<double, 3> &center,
+                                      double r) {
+  std::vector<int> found_ids;
+  std::priority_queue<pqData2, std::vector<pqData2>, std::greater<pqData2>>
+      min_pq;
+  min_pq.push(pqData2(0, _root));
+
+  while (!min_pq.empty()) {
+    pqData2 data = min_pq.top();
+    Node *node = data.node;
+    min_pq.pop();
+
+    if (node->is_leaf) {
+      if (node->depth == _max_depth) {
+        found_ids.push_back(node->depth_id);
+      }
+    } else {
+      std::array<Node *, 8> children = node->children.nodes;
+      for (int i = 0; i < 8; i++) {
+        Node *child = children[i];
+        if (child != nullptr) {
+          double dist = distance(center, child);
+          if (dist <= r) {
+            min_pq.push(pqData2(dist, child));
+          }
+        }
+      }
+    }
+  }
+  return found_ids;
+};

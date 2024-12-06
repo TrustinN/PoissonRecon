@@ -1,7 +1,9 @@
 #include "pOctree.hpp"
 #include "Octree.hpp"
-#include "utils/graphs.hpp"
+#include "utils/io.hpp"
 #include "utils/linalg.hpp"
+#include <iostream>
+#include <queue>
 #include <set>
 
 // -------------------------------------------------------------------------------------------------//
@@ -21,7 +23,7 @@ Node *seek_node(Node *node, const std::array<double, 3> &p) {
 Node *seek_node(Node *start, const std::array<double, 3> &p, int depth) {
 
   Node *r_node = start;
-  while (!(r_node->depth != depth)) {
+  while (r_node->depth != depth) {
     int idx = node_index_map(r_node, p);
     r_node = r_node->children.nodes[idx];
   };
@@ -148,46 +150,4 @@ std::vector<Node *> pOctree::Neighbors(Node *node) {
   }
 
   return ret;
-};
-
-struct pqData {
-  double priority;
-  Node *node;
-
-  pqData(double p, Node *node) : priority(p), node(node) {};
-
-  friend bool operator<(const pqData &lhs, const pqData &rhs) {
-    return lhs.priority < rhs.priority;
-  }
-
-  friend bool operator>(const pqData &lhs, const pqData &rhs) {
-    return lhs.priority > rhs.priority;
-  }
-};
-
-std::vector<int> pOctree::RadiusSearch(const std::array<double, 3> &center,
-                                       int r) {
-  std::vector<int> found_ids;
-  std::priority_queue<pqData, std::vector<pqData>, std::greater<pqData>> min_pq;
-  min_pq.push(pqData(0, _root));
-
-  while (!min_pq.empty()) {
-    pqData data = min_pq.top();
-    Node *node = data.node;
-    min_pq.pop();
-
-    if (node->is_leaf) {
-      if (node->depth == _max_depth) {
-        found_ids.push_back(node->depth_id);
-      }
-    } else {
-      for (Node *child : node->children.nodes) {
-        double dist = distance(center, child);
-        if (dist <= r) {
-          min_pq.push(pqData(dist, child));
-        }
-      }
-    }
-  }
-  return found_ids;
 };

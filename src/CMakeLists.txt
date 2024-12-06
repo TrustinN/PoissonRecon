@@ -10,6 +10,7 @@ add_executable(
   Octree.cpp
   pOctree.cpp
   basis.cpp
+  HRefine.cpp
   ${UTILS})
 
 target_link_libraries(main ${GSL_LIBRARIES} ${VTK_LIBRARIES})
@@ -20,18 +21,9 @@ target_link_libraries(plotIndicator PRIVATE ${VTK_LIBRARIES})
 # # add_executable(main main.cpp basis.cpp integration.cpp ${UTILS})
 # target_link_libraries(main ${GSL_LIBRARIES})
 #
-add_executable(
-  plot_poisson
-  plotPoisson.cpp
-  PoissonRecon.cpp
-  Normal.cpp
-  RiemannianGraph.cpp
-  Emst.cpp
-  Octree.cpp
-  pOctree.cpp
-  basis.cpp
-  ${UTILS})
-target_link_libraries(plot_poisson PRIVATE ${VTK_LIBRARIES} ${GSL_LIBRARIES})
+# add_executable( plot_poisson plotPoisson.cpp PoissonRecon.cpp Normal.cpp
+# RiemannianGraph.cpp Emst.cpp Octree.cpp pOctree.cpp basis.cpp ${UTILS})
+# target_link_libraries(plot_poisson PRIVATE ${VTK_LIBRARIES} ${GSL_LIBRARIES})
 
 #
 # add_executable(plot plot.cpp Octree.cpp Normal.cpp RiemannianGraph.cpp

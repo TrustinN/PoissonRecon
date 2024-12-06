@@ -11,7 +11,6 @@ public:
   // For each node, we find all 26 neighboring nodes of the same depth within
   // distance d
   std::vector<Node *> Neighbors(Node *node);
-  std::vector<int> RadiusSearch(const std::array<double, 3> &center, int r);
 };
 
 Node *seek_node(Node *node, const std::array<double, 3> &p);

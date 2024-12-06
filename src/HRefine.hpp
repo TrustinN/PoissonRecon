@@ -1,7 +1,7 @@
 #ifndef HREFINE_HPP
 #define HREFINE_HPP
 
-#include "BSpline.hpp"
+#include "PPolynomial.hpp"
 #include "pOctree.hpp"
 #include <vector>
 
@@ -19,7 +19,7 @@ struct HRefine {
   };
   std::vector<double> &getCoeffAtDepth(int depth) { return coeff[depth]; };
 
-  std::vector<double> computeCoeff(const std::vector<double> &start,
+  std::vector<double> computeCoeff(std::vector<double> &start,
                                    const std::vector<Node *> &nodes);
 
   std::vector<double> initializeRefine(const std::vector<double> &coarseCoeff,

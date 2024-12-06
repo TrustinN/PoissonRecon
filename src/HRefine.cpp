@@ -1,6 +1,9 @@
 #include "HRefine.hpp"
-#include "Eigen/Sparse"
+#include "BSpline.hpp"
+#include "utils/io.hpp"
 #include "utils/linalg.hpp"
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
 
 HRefine::HRefine(pOctree tree,
                  const std::vector<std::array<double, 3>> &normals,
@@ -11,10 +14,14 @@ HRefine::HRefine(pOctree tree,
 
 void HRefine::Refine() {
   int depths = tree.max_depth() + 1;
+  coeff[0] = {-1};
   for (int i = 1; i < depths; i++) {
     std::vector<Node *> coarser_nodes = tree.getNodesAtDepth(i - 1);
     std::vector<Node *> cur_nodes = tree.getNodesAtDepth(i);
-    coarseToFineRefine(getCoeffAtDepth(i - 1), coarser_nodes, cur_nodes);
+    std::cout << "Refining level " << i << std::endl;
+    setCoeffAtDepth(
+        coarseToFineRefine(getCoeffAtDepth(i - 1), coarser_nodes, cur_nodes),
+        i);
   }
 };
 
@@ -33,19 +40,21 @@ HRefine::initializeRefine(const std::vector<double> &coarseCoeff,
                           const std::vector<Node *> &coarse,
                           const std::vector<Node *> &fine) {
 
-  std::vector<double> fineCoeff(fine.size(), 0.0);
+  std::vector<double> fineCoeff(fine.size());
   for (int i = 0; i < coarse.size(); i++) {
     Node *parent = coarse[i];
     double cc = coarseCoeff[i] / 8.0;
-    for (Node *children : parent->children.nodes) {
-      fineCoeff[children->depth_id] = cc;
+    for (Node *child : parent->children.nodes) {
+      if (child != nullptr) {
+        fineCoeff[child->depth_id] = cc;
+      }
     }
   }
 
   return fineCoeff;
 };
 
-std::vector<double> HRefine::computeCoeff(const std::vector<double> &start,
+std::vector<double> HRefine::computeCoeff(std::vector<double> &start,
                                           const std::vector<Node *> &nodes) {
 
   int max_depth = tree.max_depth();
@@ -55,26 +64,29 @@ std::vector<double> HRefine::computeCoeff(const std::vector<double> &start,
   Eigen::VectorXd v = Eigen::VectorXd::Zero(nodes.size());
   for (int i = 0; i < nodes.size(); i++) {
     Node *cur_node = nodes[i];
-    ScalarField<2> cur_node_basisf(basis, cur_node->center, cur_node->width);
+    ScalarField<2> cur_node_basisf(basis, cur_node->center,
+                                   1 / cur_node->width);
     std::vector<int> v_field_nodes_active =
         tree.RadiusSearch(cur_node->center, 1.5 * cur_node->width);
+    // std::cout << v_field_nodes_active.size() << std::endl;
 
     // inner product between gradient of vec field and Node basis
     double v_i = 0.0;
     for (int ii : v_field_nodes_active) {
       Node *v_field_node = v_field_nodes[ii];
       ScalarField<2> v_field_basisf(basis, v_field_node->center,
-                                    v_field_node->width);
+                                    1 / v_field_node->width);
       std::array<double, 3> divergence;
       for (int i = 0; i < 3; i++) {
-        ScalarField<2> dv_basisf = v_field_basisf.partialDerivative(i);
-        divergence[i] = dv_basisf.innerProduct(cur_node_basisf);
+        divergence[i] =
+            cur_node_basisf.innerProduct(v_field_basisf.partialDerivative(i));
       }
       v_i += dot(divergence, _vector_field_normals[ii]);
     }
 
-    v[i] = v_i;
+    v[i] = 200000 * v_i;
   }
+  std::cout << "Computed v!" << std::endl;
 
   std::vector<Eigen::Triplet<double>> triplet_list;
   triplet_list.reserve(nodes.size() * 8);
@@ -89,14 +101,17 @@ std::vector<double> HRefine::computeCoeff(const std::vector<double> &start,
     }
 
     // inner product of node and neighboring nodes
-    ScalarField<2> cur_node_basisf(basis, cur_node->center, cur_node->width);
+    ScalarField<2> cur_node_basisf(basis, cur_node->center,
+                                   1 / cur_node->width);
     for (Node *neighbor : neighbors) {
-      ScalarField<2> neighbor_basisf(basis, neighbor->center, neighbor->width);
+      ScalarField<2> neighbor_basisf(basis, neighbor->center,
+                                     1 / neighbor->width);
       double L_ij = 0.0;
       for (int i = 0; i < 3; i++) {
         L_ij += cur_node_basisf.innerProduct(
             neighbor_basisf.partialDerivative(i).partialDerivative(i));
       }
+      assert(neighbor->depth == cur_node->depth);
       triplet_list.push_back(
           Eigen::Triplet<double>(cur_node->depth_id, neighbor->depth_id, L_ij));
     }
@@ -105,13 +120,17 @@ std::vector<double> HRefine::computeCoeff(const std::vector<double> &start,
   // Compute L
   Eigen::SparseMatrix<double, Eigen::ColMajor> L(nodes.size(), nodes.size());
   L.setFromTriplets(triplet_list.begin(), triplet_list.end());
+  std::cout << "Computed L!" << std::endl;
 
   // Solve for x
   Eigen::ConjugateGradient<Eigen::SparseMatrix<double>,
                            Eigen::Lower | Eigen::Upper>
       solver;
   solver.compute(L);
-  Eigen::VectorXd res = solver.solveWithGuess(v, start);
+  Eigen::VectorXd guess =
+      Eigen::Map<Eigen::VectorXd>(start.data(), start.size());
+  Eigen::VectorXd res = solver.solveWithGuess(v, guess);
+  std::cout << "Solved x!" << std::endl;
 
   return std::vector<double>(res.data(), res.data() + res.size());
 };
@@ -119,18 +138,22 @@ std::vector<double> HRefine::computeCoeff(const std::vector<double> &start,
 void HRefine::projectRefine(std::vector<double> &coarseCoeff,
                             std::vector<double> &fineCoeff,
                             const std::vector<Node *> &coarse) {
-  double factor = 1.0 / 8.0;
-  for (int i = 0; i < coarse.size(); i++) {
-    Node *parent = coarse[i];
-    double contribution = 0.0;
-    const std::array<Node *, 8> &children = parent->children.nodes;
-    for (Node *child : children) {
-      contribution += fineCoeff[child->depth_id];
-    }
-    coarseCoeff[i] -= contribution * factor;
-    double res = coarseCoeff[i] * factor;
-    for (Node *child : children) {
-      fineCoeff[child->depth_id] -= res;
-    }
-  }
+  // double factor = 1.0 / 8.0;
+  // for (int i = 0; i < coarse.size(); i++) {
+  //   Node *parent = coarse[i];
+  //   double contribution = 0.0;
+  //   const std::array<Node *, 8> &children = parent->children.nodes;
+  //   for (Node *child : children) {
+  //     if (child != nullptr) {
+  //       contribution += fineCoeff[child->depth_id];
+  //     }
+  //   }
+  //   coarseCoeff[i] -= contribution * factor;
+  //   double res = coarseCoeff[i] * factor;
+  //   for (Node *child : children) {
+  //     if (child != nullptr) {
+  //       fineCoeff[child->depth_id] -= res;
+  //     }
+  //   }
+  // }
 };

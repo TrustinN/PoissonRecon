@@ -101,4 +101,18 @@ double ScalarField<Degree, DIM>::innerProduct(
   return prod.integral();
 };
 
+template <int Degree, int DIM>
+std::ostream &operator<<(std::ostream &os, const ScalarField<Degree, DIM> sf) {
+  std::string banner = std::string(30, '-');
+  if (DIM > 0) {
+    os << banner << "<" << "0" << ">" << banner << std::endl << sf.polys[0];
+    for (int i = 1; i < DIM; i++) {
+      os << std::endl
+         << banner << "<" << i << ">" << banner << std::endl
+         << sf.polys[i];
+    }
+  }
+  return os;
+}
+
 #endif

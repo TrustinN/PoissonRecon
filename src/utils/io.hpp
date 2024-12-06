@@ -40,6 +40,8 @@ std::ostream &operator<<(std::ostream &ofs, Node *n);
 std::ostream &operator<<(std::ostream &ofs, const Octree &o);
 
 void writeVectorToFile(const Eigen::VectorXd &vec, const std::string &filename);
+void writeVectorToFile(const std::vector<double> &vec,
+                       const std::string &filename);
 std::vector<double> loadVectorFromFile(const std::string &filename);
 
 void save_sparse_matrix(const Eigen::SparseMatrix<double> &matrix,
