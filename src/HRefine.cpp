@@ -12,18 +12,37 @@ HRefine::HRefine(pOctree tree,
   coeff = std::vector<std::vector<double>>(tree.max_depth() + 1);
 }
 
+void HRefine::Refine(int depth) {
+  if (depth > _max_depth) {
+    return;
+  }
+
+  std::cout << "Refining level " << depth << std::endl;
+  const std::vector<Node *> &coarse = tree.getNodesAtDepth(depth - 1);
+  const std::vector<Node *> &fine = tree.getNodesAtDepth(depth);
+  std::vector<double> &coarseCoeff = getCoeffAtDepth(depth - 1);
+  std::vector<double> fineCoeff = coarseToFineRefine(coarseCoeff, coarse, fine);
+  setCoeffAtDepth(fineCoeff, depth);
+
+  Refine(depth + 1);
+
+  projectRefine(getCoeffAtDepth(depth - 1), getCoeffAtDepth(depth), coarse);
+}
+
 void HRefine::Refine() {
   int depths = tree.max_depth() + 1;
   coeff[0] = {-1};
   setCoeffAtDepth(computeCoeff(getCoeffAtDepth(0), tree.getNodesAtDepth(0)), 0);
-  for (int i = 1; i < depths; i++) {
-    std::vector<Node *> coarser_nodes = tree.getNodesAtDepth(i - 1);
-    std::vector<Node *> cur_nodes = tree.getNodesAtDepth(i);
-    std::cout << "Refining level " << i << std::endl;
-    setCoeffAtDepth(
-        coarseToFineRefine(getCoeffAtDepth(i - 1), coarser_nodes, cur_nodes),
-        i);
-  }
+  Refine(1);
+
+  // for (int i = 1; i < depths; i++) {
+  //   std::vector<Node *> coarser_nodes = tree.getNodesAtDepth(i - 1);
+  //   std::vector<Node *> cur_nodes = tree.getNodesAtDepth(i);
+  //   std::cout << "Refining level " << i << std::endl;
+  //   setCoeffAtDepth(
+  //       coarseToFineRefine(getCoeffAtDepth(i - 1), coarser_nodes, cur_nodes),
+  //       i);
+  // }
 };
 
 std::vector<double>
@@ -32,7 +51,6 @@ HRefine::coarseToFineRefine(std::vector<double> &coarseCoeff,
                             const std::vector<Node *> &fine) {
   std::vector<double> fineCoeff = initializeRefine(coarseCoeff, coarse, fine);
   fineCoeff = computeCoeff(fineCoeff, fine);
-  projectRefine(coarseCoeff, fineCoeff, coarse);
   return fineCoeff;
 };
 
@@ -83,7 +101,7 @@ std::vector<double> HRefine::computeCoeff(std::vector<double> &start,
       v_i += dot(divergence, _vector_field_normals[ii]);
     }
 
-    v[i] = 20000 * v_i;
+    v[i] = 5000 * v_i;
   }
 
   std::cout << "Computed v!" << std::endl;
@@ -144,24 +162,30 @@ std::vector<double> HRefine::computeCoeff(std::vector<double> &start,
 void HRefine::projectRefine(std::vector<double> &coarseCoeff,
                             std::vector<double> &fineCoeff,
                             const std::vector<Node *> &coarse) {
-  // double factor = 1.0 / 8.0;
-  // for (int i = 0; i < coarse.size(); i++) {
-  //   Node *parent = coarse[i];
-  //   double contribution = 0.0;
-  //   const std::array<Node *, 8> &children = parent->children.nodes;
-  //   for (Node *child : children) {
-  //     if (child != nullptr) {
-  //       contribution += fineCoeff[child->depth_id];
-  //     }
-  //   }
-  //   std::cout << "Error: " << std::abs(contribution - coarseCoeff[i])
-  //             << std::endl;
-  //   coarseCoeff[i] -= contribution * factor;
-  //   double res = coarseCoeff[i] * factor;
-  //   for (Node *child : children) {
-  //     if (child != nullptr) {
-  //       fineCoeff[child->depth_id] -= res;
-  //     }
-  //   }
-  // }
-};
+  for (int i = 0; i < coarse.size(); i++) {
+    Node *parent = coarse[i];
+    double contribution = 0.0;
+    const std::array<Node *, 8> &children = parent->children.nodes;
+    int num_active = 0;
+
+    for (Node *child : children) {
+      if (child != nullptr) {
+        contribution += fineCoeff[child->depth_id];
+        num_active += 1;
+      }
+    }
+
+    if (num_active > 0) {
+      double factor = 1.0 / num_active;
+      double residual = coarseCoeff[i] - contribution;
+      coarseCoeff[i] -= residual * factor;
+
+      double redistributed_residual = residual * factor;
+      for (Node *child : children) {
+        if (child != nullptr) {
+          fineCoeff[child->depth_id] += redistributed_residual;
+        }
+      }
+    }
+  }
+}

@@ -67,13 +67,17 @@ void PoissonRecon::run() {
   hr.Refine();
   std::vector<double> leaf_coeff = hr.getCoeffAtDepth(_depth);
   _x = Eigen::Map<Eigen::VectorXd>(leaf_coeff.data(), leaf_coeff.size());
+  std::vector<std::vector<double>> widths;
   for (int i = 0; i < _depth + 1; i++) {
     std::vector<Node *> cur_nodes = _octree.getNodesAtDepth(i);
     std::vector<std::array<double, 3>> centers;
+    std::vector<double> ws;
     for (Node *node : cur_nodes) {
       centers.push_back(node->center);
+      ws.push_back(node->width);
     }
     _centers.push_back(centers);
+    widths.push_back(ws);
   }
 
   for (int i = 0; i < _depth + 1; i++) {
@@ -81,6 +85,8 @@ void PoissonRecon::run() {
                 "data/centers_depth_" + std::to_string(i) + ".txt");
     writeVectorToFile(hr.coeff[i],
                       "data/x_depth_" + std::to_string(i) + ".txt");
+    writeVectorToFile(widths[i],
+                      "data/widths_depth_" + std::to_string(i) + ".txt");
   }
 }
 

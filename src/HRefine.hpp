@@ -7,6 +7,7 @@
 
 struct HRefine {
   pOctree tree;
+  int _max_depth;
   PPolynomial<2> basis;
   std::vector<std::array<double, 3>> _vector_field_normals;
   std::vector<std::vector<double>> coeff;
@@ -35,6 +36,7 @@ struct HRefine {
                      const std::vector<Node *> &coarse);
 
   void Refine();
+  void Refine(int depth);
 };
 
 #endif

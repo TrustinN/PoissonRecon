@@ -287,6 +287,7 @@ template <int Degree> double PPolynomial<Degree>::operator()(double x) const {
     }
   }
   assert(false);
+  return 0;
 };
 
 template <int Degree>
