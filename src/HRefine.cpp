@@ -1,4 +1,5 @@
 #include "HRefine.hpp"
+#include "utils/io.hpp"
 #include "utils/linalg.hpp"
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -40,7 +41,7 @@ void HRefine::Refine(int depth) {
 
 void HRefine::Refine() {
   int depths = _tree.max_depth() + 1;
-  _coeff[0] = {-1};
+  _coeff[0] = {1};
   setCoeffAtDepth(computeCoeff(getCoeffAtDepth(0), _tree.getNodesAtDepth(0), 0),
                   0);
   Refine(1);
@@ -102,7 +103,7 @@ std::vector<double> HRefine::computeCoeff(std::vector<double> &start,
       v_i += dot(divergence, _vector_field_normals[ii]);
     }
 
-    v[i] = 100 * v_i;
+    v[i] = v_i;
   }
 
   std::cout << "Computed v!" << std::endl;
@@ -112,14 +113,7 @@ std::vector<double> HRefine::computeCoeff(std::vector<double> &start,
 
   for (int i = 0; i < nodes.size(); i++) {
     Node *cur_node = nodes[i];
-    std::vector<std::array<double, 3>> neighbor_c = nearest_27(cur_node);
-    std::vector<Node *> neighbors;
-    for (int j = 0; j < neighbor_c.size(); j++) {
-      Node *found = seek_node(cur_node, neighbor_c[j], cur_node->depth);
-      if (found != nullptr) {
-        neighbors.push_back(found);
-      }
-    }
+    std::vector<Node *> neighbors = _tree.Neighbors(cur_node);
 
     // inner product of node and neighboring nodes
     ScalarField<2> cur_node_basisf = cur_node_fields[cur_node->depth_id];

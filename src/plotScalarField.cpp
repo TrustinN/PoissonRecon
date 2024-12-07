@@ -84,7 +84,7 @@ void renderScalarField(sfData sf, double weight, int resolution[3],
         double coordZ = bounds[4] + z * (bounds[5] - bounds[4]) / (dims[2] - 1);
 
         // Evaluate the scalar field at the calculated coordinates
-        double scalar = weight * scalarf({coordX, coordY, coordZ});
+        double scalar = 10000 * weight * scalarf({coordX, coordY, coordZ});
 
         // Insert the scalar value into the array
         scalars->InsertNextValue(scalar);

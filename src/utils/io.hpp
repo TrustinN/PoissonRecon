@@ -23,6 +23,11 @@ std::ostream &operator<<(std::ostream &ofs, const std::array<T, N> &a) {
 std::ostream &operator<<(std::ostream &ofs, const id_point &a);
 
 template <typename T>
+std::ostream &operator<<(std::ostream &ofs, const std::pair<T, T> &v) {
+  return ofs << "(" << std::get<0>(v) << ", " << std::get<1>(v) << ")";
+}
+
+template <typename T>
 std::ostream &operator<<(std::ostream &ofs, const std::vector<T> &v) {
   ofs << "<";
   if (!v.empty()) {

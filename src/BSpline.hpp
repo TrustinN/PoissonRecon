@@ -24,7 +24,7 @@ inline PPolynomial<Degree> basisFFactory(const PPolynomial<Degree> &p,
 };
 
 template <int Degree, int DIM = 3> struct ScalarField {
-  std::array<PPolynomial<Degree>, DIM> polys{PPolynomial<Degree>()};
+  std::array<PPolynomial<Degree>, DIM> polys;
 
   ScalarField() {};
   ScalarField(const ScalarField &sf) : polys(sf.polys) {};

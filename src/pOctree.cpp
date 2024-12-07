@@ -1,9 +1,6 @@
 #include "pOctree.hpp"
 #include "Octree.hpp"
-#include "utils/io.hpp"
 #include "utils/linalg.hpp"
-#include <iostream>
-#include <queue>
 #include <set>
 
 // -------------------------------------------------------------------------------------------------//
@@ -17,13 +14,23 @@ Node *seek_node(Node *node, const std::array<double, 3> &p) {
     int idx = node_index_map(r_node, p);
     r_node = r_node->children.nodes[idx];
   };
+  assert(node->center == p);
   return r_node;
 }
 
 Node *seek_node(Node *start, const std::array<double, 3> &p, int depth) {
 
   Node *r_node = start;
-  while (r_node->depth != depth && r_node != nullptr) {
+  while (true) {
+    if (r_node == nullptr) {
+      break;
+    }
+    if (r_node->depth == depth) {
+      if (r_node->center != p) {
+        r_node = nullptr;
+      }
+      return r_node;
+    }
     int idx = node_index_map(r_node, p);
     r_node = r_node->children.nodes[idx];
   };
@@ -123,31 +130,13 @@ pOctree::pOctree(std::vector<std::array<double, 3>> points, int depth)
 };
 
 std::vector<Node *> pOctree::Neighbors(Node *node) {
-  std::vector<Node *> ret;
-  // start crawling down the tree, when it narrows sufficiently, we can split
-  // the search
-  Node *cur_node = _root;
-  double threshold = 4 * node->width;
-
-  // while (true) {
-  //   int idx = node_index_map(cur_node, node->center);
-  //   Node *new_node = cur_node->info.children[idx];
-  //   std::array<double, 3> diff = new_node->center - node->center;
-  //   double dist = std::max(diff[0], std::max(diff[1], diff[2]));
-  //   if (new_node->width - dist < threshold) {
-  //     break;
-  //   }
-  //   cur_node = new_node;
-  // };
-
-  // start the split search
-  std::vector<std::array<double, 3>> targets = nearest_27(node);
-  for (int i = 0; i < targets.size(); i++) {
-    Node *found = seek_node(cur_node, targets[i]);
-    if (found->depth == node->depth) {
-      ret.push_back(found);
+  std::vector<std::array<double, 3>> neighbor_c = nearest_27(node);
+  std::vector<Node *> neighbors;
+  for (int j = 0; j < neighbor_c.size(); j++) {
+    Node *found = seek_node(_root, neighbor_c[j], node->depth);
+    if (found != nullptr) {
+      neighbors.push_back(found);
     }
   }
-
-  return ret;
+  return neighbors;
 };

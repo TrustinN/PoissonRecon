@@ -4,7 +4,6 @@
 #include "utils/io.hpp"
 #include "utils/linalg.hpp"
 #include <Eigen/SparseQR>
-#include <queue>
 
 constexpr static double TOL = 1e-6;
 
@@ -73,10 +72,12 @@ void PoissonRecon::run() {
   for (int i = 0; i < _depth + 1; i++) {
     std::vector<double> cur_coeff = _coeff[i];
     std::vector<ScalarField<2>> cur_fields = _scalar_fields[i];
+    std::cout << "Depth: " << i << std::endl;
 
     for (int j = 0; j < cur_coeff.size(); j++) {
       cur_fields[j] *= cur_coeff[j];
-      _indicator_function += cur_fields[j];
+      _indicator_function =
+          _indicator_function + PPolynomialXD<2, 3>(cur_fields[j]);
     }
   }
 }

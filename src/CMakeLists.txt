@@ -1,5 +1,8 @@
 file(GLOB UTILS "utils/*.cpp")
 
+add_executable(test test.cpp ${UTILS})
+target_link_libraries(test PRIVATE ${VTK_LIBRARIES})
+
 add_executable(
   main
   main.cpp
@@ -9,7 +12,6 @@ add_executable(
   Emst.cpp
   Octree.cpp
   pOctree.cpp
-  basis.cpp
   HRefine.cpp
   ${UTILS})
 

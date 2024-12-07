@@ -2,6 +2,7 @@
 #define POISSON_RECON_HPP
 
 #include "HRefine.hpp"
+#include "PPolynomialXd.hpp"
 #include "pOctree.hpp"
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
@@ -39,7 +40,7 @@ private:
 
   std::vector<std::vector<double>> _coeff;
   std::vector<std::vector<ScalarField<2>>> _scalar_fields;
-  ScalarField<2> _indicator_function;
+  PPolynomialXD<2, 3> _indicator_function;
 };
 
 #endif

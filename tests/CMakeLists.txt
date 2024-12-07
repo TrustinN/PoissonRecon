@@ -30,3 +30,7 @@ gtest_discover_tests(ppolynomial)
 add_executable(bspline bspline.cpp ${UTILS})
 target_link_libraries(bspline GTest::gtest_main ${VTK_LIBRARIES})
 gtest_discover_tests(bspline)
+
+add_executable(polynomialxd polynomialxd.cpp ${UTILS})
+target_link_libraries(polynomialxd GTest::gtest_main ${VTK_LIBRARIES})
+gtest_discover_tests(polynomialxd)
