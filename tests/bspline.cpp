@@ -54,3 +54,24 @@ TEST(BSplineIntegral, NonOverlappingSupport) {
 
   ASSERT_EQ(sf1.innerProduct(sf2), 0.0);
 }
+
+TEST(BSplineIntegral, Overlapping) {
+  // ----|--------|--------|----|
+  // 1.5 1.0      0        1.0  1.5
+  //
+  //               |--|----|----|--|
+  //              .25 0.5 1.0  1.5 1.75
+
+  double width1 = 1.0;
+  double center1 = 0.0;
+  PPolynomial<2> bs1 = BSpline;
+
+  double width2 = .5;
+  double center2 = 1.0;
+  PPolynomial<2> bs2 = basisFFactory(BSpline, center2, 1 / width2);
+
+  bs2 = bs2.derivative_keep_dim();
+  PPolynomial<4> bs3 = bs1 * bs2;
+
+  ASSERT_NEAR(bs3.integral(-5, 5), 0.248697916667, 1e-5);
+}

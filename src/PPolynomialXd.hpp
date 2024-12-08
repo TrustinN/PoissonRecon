@@ -22,8 +22,11 @@ template <int Degree, int DIM> struct PPolynomialXD {
   double operator()(const std::array<double, DIM> &p) const;
 
   int getPolyFromIntervalIndices(const std::array<int, DIM> &ind) const;
+  int getPolyFromIntervalIndices(const std::array<int, DIM> &ind,
+                                 const std::array<double, DIM + 1> &map) const;
 
   PPolynomialXD operator+(const PPolynomialXD &p) const;
+  PPolynomialXD &operator+=(const PPolynomialXD &p);
 };
 
 template <int Degree, int DIM> PPolynomialXD<Degree, DIM>::PPolynomialXD() {
@@ -74,6 +77,125 @@ PPolynomialXD<Degree, DIM>::PPolynomialXD(
   }
 }
 
+template <typename T> int binary_insert(const std::vector<T> &v, T d) {
+  int a = 0, b = v.size() - 1;
+  if (d > v[b]) {
+    return b;
+  }
+  while (true) {
+    int mid = (a + b) / 2;
+    if (d < v[mid]) {
+      if (d >= v[mid - 1]) {
+        return mid - 1;
+      }
+      b = mid;
+    } else {
+      a = mid + 1;
+    }
+  }
+}
+
+// template <int Degree, int DIM>
+// PPolynomialXD<Degree, DIM> &
+// PPolynomialXD<Degree, DIM>::operator+=(const PPolynomialXD<Degree, DIM> &p) {
+//
+//   std::array<std::vector<std::pair<int, int>>, DIM> ij;
+//
+//   // Modify intervals
+//   for (int d = 0; d < DIM; d++) {
+//     std::vector<double> &i1 = _intervals[d];
+//     const std::vector<double> &i2 = p._intervals[d];
+//     std::vector<std::pair<int, int>> &pairings = ij[d];
+//
+//     // This only works for BSplines, we ignore the 0 parts
+//     for (int i = 1; i < i2.size() - 1; i++) {
+//       int insert_idx = binary_insert<double>(i1, i2[i]);
+//       i1.insert(i1.begin() + insert_idx, i2[i]);
+//       pairings.push_back({insert_idx, i});
+//     }
+//   }
+//
+//   for (auto c : ij) {
+//     std::cout << c << std::endl;
+//   }
+//
+//   int divisions = 1;
+//   std::array<int, DIM> sizes;
+//   std::array<int, DIM> ij_sizes;
+//   std::array<double, DIM + 1> bit_map_pow{1.0};
+//   for (int i = 0; i < DIM; i++) {
+//     int s = _intervals[i].size();
+//     divisions *= s;
+//     sizes[i] = s;
+//     bit_map_pow[i + 1] = bit_map_pow[i] * sizes[i];
+//     ij_sizes[i] = ij[i].size();
+//   }
+//
+//   // Modify the poly_list
+//   std::vector<PolynomialXD<Degree, DIM>> new_polys;
+//   std::vector<int> insert_indexes;
+//   // cannot insert immediately as getPolyFromIntervalIndices relies
+//   // on unchanged _divisions, _sizes, so on
+//   std::array<int, DIM> idxmap;
+//   idxmap.fill(0);
+//   bool finish = false;
+//   while (!finish) {
+//     // make two indexing arrays to get the polynomials
+//     // from the lhs PPolynomialXD and another for the
+//     // rhs PPolynomialXD
+//     std::array<int, DIM> indexing_arr1;
+//     std::array<int, DIM> indexing_arr2;
+//     std::array<int, DIM> ins_index;
+//     for (int i = 0; i < DIM; i++) {
+//       int cur_idx_of_ij = idxmap[i];
+//       std::pair<int, int> pairings = ij[i][cur_idx_of_ij];
+//       // Since we inserted into our interval in ascending order
+//       ins_index[i] = std::get<0>(pairings);
+//
+//       indexing_arr1[i] = std::get<0>(pairings) - 1;
+//       indexing_arr2[i] = std::get<1>(pairings);
+//     }
+//
+//     // recover the polynomials from both piecewise inputs
+//     PolynomialXD<Degree, DIM> p1 =
+//         _polys[getPolyFromIntervalIndices(indexing_arr1)];
+//     PolynomialXD<Degree, DIM> p2 =
+//         p._polys[p.getPolyFromIntervalIndices(indexing_arr2)];
+//     PolynomialXD<Degree, DIM> p_new = p1 + p2;
+//     new_polys.push_back(p_new);
+//     insert_indexes.push_back(
+//         getPolyFromIntervalIndices(ins_index, bit_map_pow));
+//
+//     int cur_carry = 0;
+//     idxmap[cur_carry] += 1;
+//     while (idxmap[cur_carry] == ij_sizes[cur_carry]) {
+//       idxmap[cur_carry] = 0;
+//       cur_carry += 1;
+//       if (cur_carry == DIM) {
+//         finish = true;
+//         break;
+//       }
+//       idxmap[cur_carry] += 1;
+//     }
+//   }
+//
+//   std::cout << "Inserting polys" << std::endl;
+//   std::cout << "size: " << _polys.size() << std::endl;
+//   std::cout << insert_indexes << std::endl;
+//   for (int i = 0; i < insert_indexes.size(); i++) {
+//     int idx = insert_indexes[i] + i;
+//     std::cout << idx << std::endl;
+//     _polys.insert(_polys.begin() + idx, new_polys[i]);
+//   }
+//
+//   // Update all other variables
+//   _sizes = sizes;
+//   _divisions = divisions;
+//   _bit_map_pow = bit_map_pow;
+//
+//   return *this;
+// };
+
 template <int Degree, int DIM>
 PPolynomialXD<Degree, DIM> PPolynomialXD<Degree, DIM>::operator+(
     const PPolynomialXD<Degree, DIM> &p) const {
@@ -116,7 +238,6 @@ PPolynomialXD<Degree, DIM> PPolynomialXD<Degree, DIM>::operator+(
     divisions *= vec.size();
     sizes[i] = vec.size();
   }
-  std::cout << divisions << std::endl;
 
   // construct the polys based on the new intervals
   std::vector<PolynomialXD<Degree, DIM>> new_polys;
@@ -166,12 +287,7 @@ PPolynomialXD<Degree, DIM>::operator()(const std::array<double, DIM> &p) const {
   std::array<int, DIM> ind;
   for (int d = 0; d < DIM; d++) {
     std::vector<double> intv = _intervals[d];
-    for (int i = intv.size() - 1; i > -1; i--) {
-      if (p[d] > intv[i]) {
-        ind[d] = i;
-        break;
-      }
-    }
+    ind[d] = binary_insert(intv, p[d]);
   }
   int idx = getPolyFromIntervalIndices(ind);
   return _polys[idx](p);
@@ -180,10 +296,22 @@ PPolynomialXD<Degree, DIM>::operator()(const std::array<double, DIM> &p) const {
 template <int Degree, int DIM>
 int PPolynomialXD<Degree, DIM>::getPolyFromIntervalIndices(
     const std::array<int, DIM> &ind) const {
-  int idx = 0;
 
+  int idx = 0;
   for (int i = 0; i < DIM; i++) {
     idx += ind[i] * _bit_map_pow[i];
+  }
+  return idx;
+};
+
+template <int Degree, int DIM>
+int PPolynomialXD<Degree, DIM>::getPolyFromIntervalIndices(
+    const std::array<int, DIM> &ind,
+    const std::array<double, DIM + 1> &map) const {
+
+  int idx = 0;
+  for (int i = 0; i < DIM; i++) {
+    idx += ind[i] * map[i];
   }
   return idx;
 };

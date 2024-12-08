@@ -1,21 +1,18 @@
-#include "utils/plot.hpp"
-#include "Normal.hpp"
+#include "utils/io.hpp"
 #include "utils/linalg.hpp"
+#include "utils/plot.hpp"
 #include "utils/sampling.hpp"
 
 int main() {
-  // std::vector<std::array<double, 3>> vertices = sample_sphere(10000, 3);
-  std::vector<std::array<double, 3>> vertices = sample_box(10000, 1.5, 2, 1);
-  NormalApproximations na(vertices);
-  std::vector<std::array<double, 3>> normals = na.inward_normals();
-
+  std::vector<std::array<double, 3>> vertices = load_points("debug/points.txt");
+  std::vector<std::array<double, 3>> normals = load_points("debug/normals.txt");
   vtkNew<vtkPoints> points = load_points(vertices);
 
   std::vector<std::array<double, 3>> b(vertices.size());
-  std::vector<double> weights(vertices.size());
+  std::vector<double> weights = loadVectorFromFile("debug/weights.txt");
   for (int i = 0; i < vertices.size(); i++) {
-    b[i] = vertices[i] + normals[i];
-    weights[i] = (dot(normals[i], {0.3, 0.3, 0.3}) + 1) / 2;
+    weights[i] *= 10000;
+    b[i] = vertices[i] + normals[i] * 4;
   }
   vtkNew<vtkCellArray> linesArray = load_lines(vertices, b, points);
   vtkNew<vtkDoubleArray> lineScalars = load_scalars(weights);
@@ -30,6 +27,24 @@ int main() {
   rainbowBlueRedLut->SetNumberOfColors(256);
   rainbowBlueRedLut->SetHueRange(0.667, 0.0);
   rainbowBlueRedLut->Build();
+
+  std::vector<std::array<double, 3>> v2 = load_points("debug/centers.txt");
+  std::vector<double> coeff = loadVectorFromFile("debug/coeff.txt");
+  vtkNew<vtkDoubleArray> coeffScalars = load_scalars(coeff);
+  vtkNew<vtkPoints> p2 = load_points(v2);
+  vtkNew<vtkPolyData> pd2;
+  pd2->SetPoints(p2);
+  pd2->GetPointData()->SetScalars(coeffScalars);
+  vtkNew<vtkVertexGlyphFilter> vf;
+  vf->SetInputData(pd2);
+  vtkNew<vtkPolyDataMapper> mp2;
+  mp2->SetInputConnection(vf->GetOutputPort());
+  mp2->SetLookupTable(rainbowBlueRedLut);
+  vtkNew<vtkActor> va;
+  va->SetMapper(mp2);
+  va->GetProperty()->SetPointSize(10);
+  va->GetProperty()->SetSpecular(1.0);
+  va->GetProperty()->SetSpecularPower(50.0);
 
   // Mapper and Actor for Lines
   vtkNew<vtkPolyDataMapper> lineMapper;
@@ -64,6 +79,7 @@ int main() {
   renderWindowInteractor->SetRenderWindow(renderWindow);
 
   renderer->AddActor(vertexActor);
+  renderer->AddActor(va);
   renderer->AddActor(lineActor);
 
   // Window Render

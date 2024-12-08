@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
   int end = -1;
   if (argc > 1) {
     depth = std::stoi(argv[1]);
-    end = depth - 1;
+    end = std::stoi(argv[2]);
   }
 
   std::vector<std::array<double, 3>> samples = load_points("points.txt");
@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     }
 
     for (int j = 0; j < weights.size(); j++) {
-      pointScalars->InsertNextValue(weights[j]);
+      pointScalars->InsertNextValue(3000 * weights[j]);
     }
 
     double range[2];

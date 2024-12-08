@@ -3,6 +3,8 @@
 #include "utils/linalg.hpp"
 #include <set>
 
+constexpr static double EPSILON = 1e-8;
+
 // -------------------------------------------------------------------------------------------------//
 // Helper functions
 // -------------------------------------------------------------------------------------------------//
@@ -26,7 +28,7 @@ Node *seek_node(Node *start, const std::array<double, 3> &p, int depth) {
       break;
     }
     if (r_node->depth == depth) {
-      if (r_node->center != p) {
+      if (distance(r_node->center, p) > EPSILON) {
         r_node = nullptr;
       }
       return r_node;

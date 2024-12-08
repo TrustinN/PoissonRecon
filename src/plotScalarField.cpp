@@ -54,7 +54,8 @@ struct sfData {
   }
 };
 
-void renderScalarField(sfData sf, double weight, int resolution[3],
+void renderScalarField(sfData sf, double weight, double factor,
+                       int resolution[3],
                        vtkSmartPointer<vtkRenderer> renderer) {
   auto bounds = sf.bounds;
   auto scalarf = sf.sf;
@@ -79,12 +80,12 @@ void renderScalarField(sfData sf, double weight, int resolution[3],
     for (int y = 0; y < dims[1]; ++y) {
       for (int x = 0; x < dims[0]; ++x) {
         // Calculate the physical coordinates based on the bounds and resolution
-        double coordX = bounds[0] + x * (bounds[1] - bounds[0]) / (dims[0] - 1);
-        double coordY = bounds[2] + y * (bounds[3] - bounds[2]) / (dims[1] - 1);
-        double coordZ = bounds[4] + z * (bounds[5] - bounds[4]) / (dims[2] - 1);
+        double coordX = bounds[0] + x * (bounds[1] - bounds[0]) / (dims[0]);
+        double coordY = bounds[2] + y * (bounds[3] - bounds[2]) / (dims[1]);
+        double coordZ = bounds[4] + z * (bounds[5] - bounds[4]) / (dims[2]);
 
         // Evaluate the scalar field at the calculated coordinates
-        double scalar = 10000 * weight * scalarf({coordX, coordY, coordZ});
+        double scalar = factor * weight * scalarf({coordX, coordY, coordZ});
 
         // Insert the scalar value into the array
         scalars->InsertNextValue(scalar);
@@ -137,11 +138,34 @@ void renderScalarField(sfData sf, double weight, int resolution[3],
 int main(int argc, char **argv) {
   int depth = 4;
   int end = -1;
+  bool iso = false;
+  double factor = 1.0;
   if (argc > 1) {
-    std::string option = std::string(argv[1]);
-    depth = std::stoi(argv[2]);
-    if (option == "--single") {
-      end = depth - 1;
+    for (int i = 0; i < argc; i++) {
+      std::string option = std::string(argv[i]);
+      if (option == "--single") {
+        i += 1;
+        try {
+          depth = std::stoi(argv[i]);
+          end = depth - 1;
+        } catch (std::exception) {
+          i -= 1;
+        }
+      } else if (option == "--cascade") {
+        try {
+          i += 1;
+          depth = std::stoi(argv[i]);
+          i += 1;
+          end = std::stoi(argv[i]);
+        } catch (std::exception) {
+          std::cout << "error" << std::endl;
+        }
+      } else if (option == "--iso") {
+        iso = true;
+      } else if (option == "--factor") {
+        i += 1;
+        factor = std::stoi(argv[i]);
+      }
     }
   }
   int resolution1[3] = {10, 10, 10};
@@ -155,16 +179,20 @@ int main(int argc, char **argv) {
 
     std::vector<std::array<double, 3>> vertices =
         load_points("data/centers_depth_" + std::to_string(i) + ".txt");
-    // std::vector<double> weights =
-    //     loadVectorFromFile("data/x_depth_" + std::to_string(i) + ".txt");
-    std::vector<double> weights =
-        loadVectorFromFile("data/iso_vals_depth_" + std::to_string(i) + ".txt");
+    std::vector<double> weights;
+    if (!iso) {
+      weights =
+          loadVectorFromFile("data/x_depth_" + std::to_string(i) + ".txt");
+    } else {
+      weights = loadVectorFromFile("data/iso_vals_depth_" + std::to_string(i) +
+                                   ".txt");
+    }
     std::vector<double> widths =
         loadVectorFromFile("data/widths_depth_" + std::to_string(i) + ".txt");
 
     for (int j = 0; j < vertices.size(); j++) {
       sfData sf(vertices[j], widths[j]);
-      renderScalarField(sf, weights[j], resolution1, renderer);
+      renderScalarField(sf, weights[j], factor, resolution1, renderer);
     }
   }
 

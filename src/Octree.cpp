@@ -353,7 +353,6 @@ std::vector<int> Octree::RadiusSearch(const std::array<double, 3> &center,
   std::priority_queue<pqData2, std::vector<pqData2>, std::greater<pqData2>>
       min_pq;
   min_pq.push(pqData2(0, _root));
-  double threshold = std::pow(r, 2);
 
   while (!min_pq.empty()) {
     pqData2 data = min_pq.top();
@@ -369,8 +368,16 @@ std::vector<int> Octree::RadiusSearch(const std::array<double, 3> &center,
       for (int i = 0; i < 8; i++) {
         Node *child = children[i];
         if (child != nullptr) {
-          double dist = distance(center, child);
-          if (dist <= threshold) {
+          double w = child->width * 1.5;
+          std::array<double, 3> c2 = child->center;
+          std::array<double, 3> diff = {std::abs(center[0] - c2[0]),
+                                        std::abs(center[1] - c2[1]),
+                                        std::abs(center[2] - c2[2])};
+
+          double dist =
+              std::max(diff[0] - w, std::max(diff[1] - w, diff[2] - w));
+          // double dist = distance(center, child);
+          if (dist <= r) {
             min_pq.push(pqData2(dist, child));
           }
         }

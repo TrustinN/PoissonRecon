@@ -110,7 +110,7 @@ NormalApproximations::NormalApproximations(
       get_mst<std::array<double, 3>>(_normals, _adj_list, offset);
 
   orient_normals(_normals, vertices, _traversal_order);
-  std::transform(_normals.begin(), _normals.end(),
-                 std::inserter(_inward_normals, _inward_normals.begin()),
-                 [](const std::array<double, 3> &n) { return -1 * n; });
+  for (int i = 0; i < _normals.size(); i++) {
+    _inward_normals.push_back(_normals[i] * -1);
+  }
 }

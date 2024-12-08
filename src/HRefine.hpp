@@ -38,7 +38,7 @@ struct HRefine {
 
   void projectRefine(std::vector<double> &coarseCoeff,
                      std::vector<double> &fineCoeff,
-                     const std::vector<Node *> &coarse);
+                     const std::vector<Node *> &coarse, int depth);
 
   void Refine();
   void Refine(int depth);

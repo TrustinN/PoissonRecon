@@ -33,7 +33,7 @@ vtkNew<vtkDoubleArray> load_scalars(const std::vector<double> &weights) {
   vtkNew<vtkDoubleArray> scalars;
   scalars->SetNumberOfComponents(1);
   for (const auto &w : weights) {
-    scalars->InsertNextValue(w);
+    scalars->InsertNextValue((w > 0) - (w < 0));
   }
   return scalars;
 };

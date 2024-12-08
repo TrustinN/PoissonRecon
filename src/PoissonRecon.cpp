@@ -69,7 +69,8 @@ void PoissonRecon::run() {
   hr.Refine();
   _coeff = hr._coeff;
   _scalar_fields = hr._basis_functions;
-  for (int i = 0; i < _depth + 1; i++) {
+  // change back to i < _depth + 1 when we fix addition of PPolynomialXD
+  for (int i = 0; i < 4; i++) {
     std::vector<double> cur_coeff = _coeff[i];
     std::vector<ScalarField<2>> cur_fields = _scalar_fields[i];
     std::cout << "Depth: " << i << std::endl;
