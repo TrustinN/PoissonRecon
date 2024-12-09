@@ -4,8 +4,8 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 
-constexpr static int DEPTH = 2;
-constexpr static int MONITOR = 17;
+constexpr static int DEPTH = 1;
+constexpr static int MONITOR = 0;
 constexpr static bool FULL = false;
 
 double
@@ -21,43 +21,6 @@ computeSymmetricError(const Eigen::SparseMatrix<double, Eigen::ColMajor> &L) {
   double frobeniusNorm = denseDiff.norm(); // Frobenius norm is the default norm
 
   return frobeniusNorm;
-}
-
-void save_data(Node *cur, Node *leaf, const std::array<double, 3> &normal,
-               double weight, const std::string &filename) {
-  // store the current Node parameters as functions:
-  std::ofstream file(filename, std::ios::app);
-
-  char var[3] = {'x', 'y', 'z'};
-  if (file.is_open()) {
-    file << "WEIGHT: " << weight << "\n\n";
-
-    for (int i = 0; i < 3; i++) {
-      file << "g((x";
-      if (cur->center[i] > 0) {
-        file << "+";
-      };
-      file << cur->center[i] << ")/" << cur->width << ")\n";
-    }
-    file << "\n";
-
-    for (int i = 0; i < 3; i++) {
-      file << var[i] << ": " << "g((x";
-      if (leaf->center[i] > 0) {
-        file << "+";
-      };
-      file << leaf->center[i] << ")/" << leaf->width << ")\n";
-      file << "V_{ector}((" << -leaf->center[i] << ", 0), " << "("
-           << 5 * normal[i] - leaf->center[i] << ", 0))";
-      file << "\n";
-    }
-    file << "\n";
-
-    file.close();
-    std::cout << "Data saved successfully to " << filename << std::endl;
-  } else {
-    std::cerr << "Error opening file for writing!" << std::endl;
-  }
 }
 
 HRefine::HRefine(pOctree tree,
@@ -173,9 +136,9 @@ std::vector<double> HRefine::computeCoeff(std::vector<double> &start,
         if (i == MONITOR || FULL) {
           debug_points.push_back(v_field_node->center);
           debug_normals.push_back(_vector_field_normals[ii]);
-          // debug_weights.push_back(abs(divergence[0]) + abs(divergence[1]) +
-          //                         abs(divergence[2]));
-          debug_weights.push_back(val);
+          debug_weights.push_back(abs(divergence[0]) + abs(divergence[1]) +
+                                  abs(divergence[2]));
+          // debug_weights.push_back(val);
         }
       }
     }
@@ -189,6 +152,9 @@ std::vector<double> HRefine::computeCoeff(std::vector<double> &start,
   }
 
   std::cout << "Computed v!" << std::endl;
+  if (depth == DEPTH) {
+    std::cout << v << std::endl;
+  }
 
   std::vector<Eigen::Triplet<double>> triplet_list;
   triplet_list.reserve(nodes.size() * 8);
@@ -235,6 +201,9 @@ std::vector<double> HRefine::computeCoeff(std::vector<double> &start,
   if (error > 1e-4) {
     std::cout << "Depth of Error: " << depth << std::endl;
     throw std::runtime_error("Symmetry error detected");
+  }
+  if (depth == DEPTH) {
+    std::cout << L << std::endl;
   }
 
   // Solve for x

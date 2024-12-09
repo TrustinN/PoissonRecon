@@ -20,8 +20,6 @@ std::ostream &operator<<(std::ostream &ofs, const std::array<T, N> &a) {
   return ofs << "]";
 };
 
-std::ostream &operator<<(std::ostream &ofs, const id_point &a);
-
 template <typename T>
 std::ostream &operator<<(std::ostream &ofs, const std::pair<T, T> &v) {
   return ofs << "(" << std::get<0>(v) << ", " << std::get<1>(v) << ")";
@@ -39,10 +37,6 @@ std::ostream &operator<<(std::ostream &ofs, const std::vector<T> &v) {
   ofs << ">";
   return ofs;
 }
-
-std::ostream &operator<<(std::ostream &ofs, const Node &n);
-std::ostream &operator<<(std::ostream &ofs, Node *n);
-std::ostream &operator<<(std::ostream &ofs, const Octree &o);
 
 void writeVectorToFile(const Eigen::VectorXd &vec, const std::string &filename);
 void writeVectorToFile(const std::vector<double> &vec,

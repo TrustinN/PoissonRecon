@@ -4,12 +4,30 @@
 #include <array>
 #include <cassert>
 #include <iostream>
+#include <omp.h>
 #include <queue>
 #include <vector>
 
 // -------------------------------------------------------------------------------------------------//
 // Helpers
 // -------------------------------------------------------------------------------------------------//
+
+// helper function computes distance between
+double distance(const std::array<double, 3> &a, const Node *node) {
+  std::array<double, 3> center = node->center;
+  std::array<double, 3> diff = {std::abs(a[0] - center[0]),
+                                std::abs(a[1] - center[1]),
+                                std::abs(a[2] - center[2])};
+
+  // If distance along an axis is < node width
+  // only need to compute remaining distance along other axis
+  double width = node->width;
+  diff[0] = (diff[0] < width) ? 0 : std::pow(diff[0] - width, 2);
+  diff[1] = (diff[1] < width) ? 0 : std::pow(diff[1] - width, 2);
+  diff[2] = (diff[2] < width) ? 0 : std::pow(diff[2] - width, 2);
+
+  return diff[0] + diff[1] + diff[2];
+};
 
 // maps the current point to which child node it belongs
 int node_index_map(Node *node, const std::array<double, 3> &p) {
@@ -192,14 +210,14 @@ struct pqData {
   union data {
     Node *node;
     std::array<double, 3> pt;
-    data(Node *node) : node(node) {};
-    data(const std::array<double, 3> pt) : pt(pt) {};
-    ~data() {};
+    data(Node *node) : node(node){};
+    data(const std::array<double, 3> pt) : pt(pt){};
+    ~data(){};
   } data;
 
-  pqData(double p, Node *node) : priority(p), data(node), is_point(false) {};
+  pqData(double p, Node *node) : priority(p), data(node), is_point(false){};
   pqData(double p, const std::array<double, 3> pt, int id)
-      : priority(p), data(pt), is_point(true), id(id) {};
+      : priority(p), data(pt), is_point(true), id(id){};
 
   friend bool operator<(const pqData &lhs, const pqData &rhs) {
     return lhs.priority < rhs.priority;
@@ -210,7 +228,7 @@ struct pqData {
   }
 };
 
-std::vector<int> Octree::kNearestNeighbors(const std::array<double, 3> query,
+std::vector<int> Octree::kNearestNeighbors(const std::array<double, 3> &query,
                                            int k) const {
   std::vector<int> ret;
 
@@ -251,6 +269,21 @@ std::vector<int> Octree::kNearestNeighbors(const std::array<double, 3> query,
   };
 
   return ret;
+};
+
+std::vector<std::vector<int>>
+Octree ::kNearestNeighbors(const std::vector<std::array<double, 3>> &queries,
+                           int k) const {
+  int num_queries = queries.size();
+  std::vector<std::vector<int>> res(num_queries);
+#pragma omp parallel for
+  {
+    for (int i = 0; i < num_queries; i++) {
+      res[i] = kNearestNeighbors(queries[i], k);
+    }
+  }
+
+  return res;
 };
 
 // Needs to be updated to keep track of _leaf_nodes
@@ -336,7 +369,7 @@ struct pqData2 {
   double priority;
   Node *node;
 
-  pqData2(double p, Node *node) : priority(p), node(node) {};
+  pqData2(double p, Node *node) : priority(p), node(node){};
 
   friend bool operator<(const pqData2 &lhs, const pqData2 &rhs) {
     return lhs.priority < rhs.priority;
@@ -386,3 +419,70 @@ std::vector<int> Octree::RadiusSearch(const std::array<double, 3> &center,
   }
   return found_ids;
 };
+
+std::ostream &operator<<(std::ostream &ofs, const id_point &a) {
+  return ofs << std::get<1>(a);
+};
+
+std::ostream &operator<<(std::ostream &ofs, const std::array<Node *, 8> &a) {
+  if (a[0] == nullptr) {
+    ofs << "[null";
+  } else {
+    ofs << std::endl;
+    ofs << *a[0];
+  }
+  for (int i = 1; i < 8; i++) {
+    if (a[i] == nullptr) {
+      ofs << ", null";
+    } else {
+      ofs << std::endl << *a[i];
+    }
+  };
+  if (a[0] == nullptr) {
+    ofs << "]";
+  }
+  return ofs;
+};
+
+std::ostream &operator<<(std::ostream &ofs, const Node &n) {
+  std::string indent(2 * n.depth, ' ');
+  std::string label = (n.is_leaf ? "Leaf" : "Branch");
+  ofs << indent << label << "[" << n.num_points << "] {" << std::endl;
+  ofs << indent << "  "
+      << "center: " << n.center << "," << std::endl;
+  ofs << indent << "  "
+      << "width: " << n.width << "," << std::endl;
+  if (n.is_leaf) {
+    ofs << indent << "  " << n.children.points << std::endl;
+  } else {
+    ofs << indent << "  "
+        << "children:" << n.children.nodes << std::endl;
+  }
+  ofs << indent << "}";
+  return ofs;
+};
+
+std::ostream &operator<<(std::ostream &ofs, Node *n) {
+  std::string indent(2 * n->depth, ' ');
+  std::string label = (n->is_leaf ? "Leaf" : "Branch");
+  ofs << indent << label << "[" << n->num_points << "] {" << std::endl;
+  ofs << indent << "  "
+      << "center: " << n->center << "," << std::endl;
+  ofs << indent << "  "
+      << "width: " << n->width << "," << std::endl;
+  if (n->is_leaf) {
+    ofs << indent << "  " << n->children.points << std::endl;
+  } else {
+    ofs << indent << "  "
+        << "children:" << n->children.nodes << std::endl;
+  }
+  ofs << indent << "}";
+  return ofs;
+};
+
+std::ostream &operator<<(std::ostream &ofs, const Octree &o) {
+  ofs << "Octree: [" << std::endl;
+  ofs << *o.root() << std::endl;
+  ofs << "]";
+  return ofs;
+}

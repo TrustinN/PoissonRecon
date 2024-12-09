@@ -1,7 +1,6 @@
 #ifndef LINALG_HPP
 #define LINALG_HPP
 
-#include "../Octree.hpp"
 #include <array>
 #include <cmath>
 
@@ -119,8 +118,6 @@ std::array<T, 3> cross(const std::array<T, 3> &a, const std::array<T, 3> &b) {
   return {a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2],
           a[0] * b[1] - a[1] * b[0]};
 }
-
-double distance(const std::array<double, 3> &a, const Node *node);
 
 template <typename T, std::size_t N>
 T distance(const std::array<T, N> &a, const std::array<T, N> &b) {

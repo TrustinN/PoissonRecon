@@ -28,8 +28,8 @@ struct Node;
 union NodeChildren {
   std::vector<id_point> points;
   std::array<Node *, 8> nodes;
-  NodeChildren() : points() {};
-  ~NodeChildren() {};
+  NodeChildren() : points(){};
+  ~NodeChildren(){};
 };
 
 struct Node {
@@ -83,12 +83,17 @@ private:
   };
 
 public:
-  Octree() : _size(0), _root(nullptr) {};
+  Octree() : _size(0), _root(nullptr){};
   Octree(std::vector<std::array<double, 3>> points, int max_depth = 8,
          int min_depth = -1);
 
-  std::vector<int> kNearestNeighbors(const std::array<double, 3> query,
+  std::vector<int> kNearestNeighbors(const std::array<double, 3> &query,
                                      int k = 1) const;
+
+  std::vector<std::vector<int>>
+  kNearestNeighbors(const std::vector<std::array<double, 3>> &queries,
+                    int k) const;
+
   template <bool refine = false>
   void Insert(const std::vector<std::array<double, 3>> &points);
   template <bool refine = false>
@@ -177,5 +182,12 @@ void Octree::Insert(const std::vector<std::array<double, 3>> &points) {
     _size += points.size();
   }
 };
+
+double distance(const std::array<double, 3> &a, const Node *node);
+
+std::ostream &operator<<(std::ostream &ofs, const id_point &a);
+std::ostream &operator<<(std::ostream &ofs, const Node &n);
+std::ostream &operator<<(std::ostream &ofs, Node *n);
+std::ostream &operator<<(std::ostream &ofs, const Octree &o);
 
 #endif

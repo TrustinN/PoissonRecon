@@ -3,67 +3,6 @@
 #include <array>
 #include <iostream>
 
-std::ostream &operator<<(std::ostream &ofs, const id_point &a) {
-  return ofs << std::get<1>(a);
-};
-
-std::ostream &operator<<(std::ostream &ofs, const std::array<Node *, 8> &a) {
-  if (a[0] == nullptr) {
-    ofs << "[null";
-  } else {
-    ofs << std::endl;
-    ofs << *a[0];
-  }
-  for (int i = 1; i < 8; i++) {
-    if (a[i] == nullptr) {
-      ofs << ", null";
-    } else {
-      ofs << std::endl << *a[i];
-    }
-  };
-  if (a[0] == nullptr) {
-    ofs << "]";
-  }
-  return ofs;
-};
-
-std::ostream &operator<<(std::ostream &ofs, const Node &n) {
-  std::string indent(2 * n.depth, ' ');
-  std::string label = (n.is_leaf ? "Leaf" : "Branch");
-  ofs << indent << label << "[" << n.num_points << "] {" << std::endl;
-  ofs << indent << "  " << "center: " << n.center << "," << std::endl;
-  ofs << indent << "  " << "width: " << n.width << "," << std::endl;
-  if (n.is_leaf) {
-    ofs << indent << "  " << n.children.points << std::endl;
-  } else {
-    ofs << indent << "  " << "children:" << n.children.nodes << std::endl;
-  }
-  ofs << indent << "}";
-  return ofs;
-};
-
-std::ostream &operator<<(std::ostream &ofs, Node *n) {
-  std::string indent(2 * n->depth, ' ');
-  std::string label = (n->is_leaf ? "Leaf" : "Branch");
-  ofs << indent << label << "[" << n->num_points << "] {" << std::endl;
-  ofs << indent << "  " << "center: " << n->center << "," << std::endl;
-  ofs << indent << "  " << "width: " << n->width << "," << std::endl;
-  if (n->is_leaf) {
-    ofs << indent << "  " << n->children.points << std::endl;
-  } else {
-    ofs << indent << "  " << "children:" << n->children.nodes << std::endl;
-  }
-  ofs << indent << "}";
-  return ofs;
-};
-
-std::ostream &operator<<(std::ostream &ofs, const Octree &o) {
-  ofs << "Octree: [" << std::endl;
-  ofs << *o.root() << std::endl;
-  ofs << "]";
-  return ofs;
-}
-
 void writeVectorToFile(const Eigen::VectorXd &vec,
                        const std::string &filename) {
   std::ofstream file(filename);

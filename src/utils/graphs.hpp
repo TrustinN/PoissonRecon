@@ -16,9 +16,9 @@ struct MSTpqData {
   int id_root;
   int id_leaf;
 
-  MSTpqData() {};
+  MSTpqData(){};
   MSTpqData(double p, int id_root, int id_leaf)
-      : priority(p), id_root(id_root), id_leaf(id_leaf) {};
+      : priority(p), id_root(id_root), id_leaf(id_leaf){};
 
   friend bool operator>(const MSTpqData &lhs, const MSTpqData &rhs) {
     return lhs.priority > rhs.priority;

@@ -7,14 +7,12 @@
 #include <vector>
 
 class RiemannianGraph {
-  double _max_edge;
   std::vector<std::set<int>> _adj_list;
 
 public:
   RiemannianGraph(const std::vector<std::array<double, 3>> &vertices,
                   const Octree &octree, int k = 15);
 
-  double max_edge() { return _max_edge; };
   std::vector<std::set<int>> adj_list() { return _adj_list; };
 };
 

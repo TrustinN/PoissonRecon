@@ -1,4 +1,5 @@
 #include "../src/Octree.hpp"
+#include "../src/utils/io.hpp"
 #include "../src/utils/sampling.hpp"
 #include <array>
 #include <gtest/gtest.h>
@@ -99,6 +100,29 @@ TEST(OctreekNN, Random) {
                         pow(query[1] - tree.points()[n_id][1], 2) +
                         pow(query[2] - tree.points()[n_id][2], 2);
   EXPECT_LE(nearest_dist, answer_dist);
+};
+
+TEST(OctreekNN, Parallel) {
+
+  const int max_points = 10000;
+  const int nn = 15;
+  std::vector<std::array<double, 3>> points =
+      rand_points(-100, 100, max_points);
+  Octree tree(points);
+
+  const int num_queries = 100;
+  std::vector<std::array<double, 3>> queries =
+      rand_points(-100, 100, num_queries);
+  std::vector<std::vector<int>> expected;
+  for (auto query : queries) {
+    expected.push_back(tree.kNearestNeighbors(query, nn));
+  }
+
+  std::vector<std::vector<int>> actual = tree.kNearestNeighbors(queries, nn);
+
+  for (int i = 0; i < num_queries; i++) {
+    ASSERT_EQ(expected[i], actual[i]);
+  }
 };
 
 TEST(OctreeDelete, NoDelete) {
