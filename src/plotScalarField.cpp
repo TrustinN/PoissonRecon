@@ -164,7 +164,8 @@ int main(int argc, char **argv) {
         iso = true;
       } else if (option == "--factor") {
         i += 1;
-        factor = std::stoi(argv[i]);
+        factor = std::stof(argv[i]);
+        std::cout << factor << std::endl;
       }
     }
   }

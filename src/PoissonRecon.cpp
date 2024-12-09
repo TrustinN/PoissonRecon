@@ -97,11 +97,11 @@ void PoissonRecon::write() {
     for (Node *node : cur_nodes) {
       centers.push_back(node->center);
       ws.push_back(node->width);
-      i_vals.push_back(_indicator_function(node->center));
+      // i_vals.push_back(_indicator_function(node->center));
     }
     _centers.push_back(centers);
     widths.push_back(ws);
-    iso_vals.push_back(i_vals);
+    // iso_vals.push_back(i_vals);
   }
 
   for (int i = 0; i < _depth + 1; i++) {
@@ -110,7 +110,7 @@ void PoissonRecon::write() {
     writeVectorToFile(_coeff[i], "data/x_depth_" + std::to_string(i) + ".txt");
     writeVectorToFile(widths[i],
                       "data/widths_depth_" + std::to_string(i) + ".txt");
-    writeVectorToFile(iso_vals[i],
-                      "data/iso_vals_depth_" + std::to_string(i) + ".txt");
+    // writeVectorToFile(iso_vals[i],
+    //                   "data/iso_vals_depth_" + std::to_string(i) + ".txt");
   }
 }

@@ -196,6 +196,10 @@ template <typename T> int binary_insert(const std::vector<T> &v, T d) {
 //   return *this;
 // };
 
+// rather than explicit interval / poly management which would be mem
+// inefficient store the other interval and polys and perform lazy evaluation
+// when needed
+
 template <int Degree, int DIM>
 PPolynomialXD<Degree, DIM> PPolynomialXD<Degree, DIM>::operator+(
     const PPolynomialXD<Degree, DIM> &p) const {

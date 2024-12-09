@@ -20,8 +20,8 @@ target_link_libraries(main ${GSL_LIBRARIES} ${VTK_LIBRARIES})
 add_executable(plotIndicator plotIndicator.cpp ${UTILS})
 target_link_libraries(plotIndicator PRIVATE ${VTK_LIBRARIES})
 
-# add_executable(plotScalar plotScalarField.cpp ${UTILS})
-# target_link_libraries(plotScalar PRIVATE ${VTK_LIBRARIES})
+add_executable(plotScalar plotScalarField.cpp ${UTILS})
+target_link_libraries(plotScalar PRIVATE ${VTK_LIBRARIES})
 
 add_executable(plotDebug Debug.cpp ${UTILS})
 target_link_libraries(plotDebug PRIVATE ${VTK_LIBRARIES})

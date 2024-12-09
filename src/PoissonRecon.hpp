@@ -17,6 +17,7 @@ public:
                int depth = 8);
 
   void run();
+  void run_full_solve();
   void write();
 
   pOctree octree() { return _octree; };

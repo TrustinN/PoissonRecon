@@ -348,7 +348,7 @@ struct pqData2 {
 };
 
 std::vector<int> Octree::RadiusSearch(const std::array<double, 3> &center,
-                                      double r) {
+                                      double r, int depth) {
   std::vector<int> found_ids;
   std::priority_queue<pqData2, std::vector<pqData2>, std::greater<pqData2>>
       min_pq;
@@ -359,8 +359,8 @@ std::vector<int> Octree::RadiusSearch(const std::array<double, 3> &center,
     Node *node = data.node;
     min_pq.pop();
 
-    if (node->is_leaf) {
-      if (node->depth == _max_depth) {
+    if (node->is_leaf || node->depth == depth) {
+      if (node->depth == depth) {
         found_ids.push_back(node->depth_id);
       }
     } else {

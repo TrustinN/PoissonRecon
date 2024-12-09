@@ -94,7 +94,8 @@ public:
   template <bool refine = false>
   void Insert(Node *node, const std::vector<id_point> &points);
   void Delete(std::array<double, 3> p);
-  std::vector<int> RadiusSearch(const std::array<double, 3> &center, double r);
+  std::vector<int> RadiusSearch(const std::array<double, 3> &center, double r,
+                                int depth);
 
   std::vector<Node *> &getNodesAtDepth(int d) {
     assert(0 <= d && d <= _nodes.size());

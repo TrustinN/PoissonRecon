@@ -154,7 +154,7 @@ std::vector<double> HRefine::computeCoeff(std::vector<double> &start,
     }
     ScalarField<2> cur_node_basisf = cur_node_fields[cur_node->depth_id];
     std::vector<int> v_field_nodes_active =
-        _tree.RadiusSearch(cur_node->center, 1.5 * cur_node->width);
+        _tree.RadiusSearch(cur_node->center, 1.5 * cur_node->width, _max_depth);
 
     // inner product between gradient of vec field and Node basis
     double v_i = 0.0;
@@ -197,7 +197,9 @@ std::vector<double> HRefine::computeCoeff(std::vector<double> &start,
   std::vector<double> nonzerosLs;
   for (int i = 0; i < nodes.size(); i++) {
     Node *cur_node = nodes[i];
+    // this is causing the weird coefficient calculations
     std::vector<Node *> neighbors = _tree.Neighbors(cur_node);
+    // std::vector<Node *> neighbors = {cur_node};
 
     // inner product of node and neighboring nodes
     ScalarField<2> cur_node_basisf = cur_node_fields[cur_node->depth_id];
@@ -280,32 +282,34 @@ void HRefine::projectRefine(std::vector<double> &coarseCoeff,
                             std::vector<double> &fineCoeff,
                             const std::vector<Node *> &coarse, int depth) {
 
-  double factor = 1.0 / 8.0;
-  std::vector<ScalarField<2>> coarse_fields = getFieldsAtDepth(depth - 1);
-  std::vector<ScalarField<2>> fine_fields = getFieldsAtDepth(depth);
-  for (int i = 0; i < coarse.size(); i++) {
-    Node *parent = coarse[i];
-    double contribution = 0.0;
-    const std::array<Node *, 8> &children = parent->children.nodes;
-
-    ScalarField<2> parent_field = coarse_fields[parent->depth_id];
-    ScalarField<2> pdx = parent_field.partialDerivative(0).partialDerivative(0);
-    ScalarField<2> pdy = parent_field.partialDerivative(1).partialDerivative(1);
-    ScalarField<2> pdz = parent_field.partialDerivative(2).partialDerivative(2);
-
-    for (Node *child : children) {
-      if (child != nullptr) {
-        ScalarField<2> child_field = fine_fields[child->depth_id];
-        double inner = pdx.innerProduct(child_field) +
-                       pdy.innerProduct(child_field) +
-                       pdz.innerProduct(child_field);
-        contribution += fineCoeff[child->depth_id] * inner;
-        fineCoeff[child->depth_id] +=
-            coarseCoeff[parent->depth_id] * inner * factor;
-      }
-    }
-    coarseCoeff[i] -= contribution * factor;
-  }
+  // double factor = 1.0 / 8.0;
+  // std::vector<ScalarField<2>> coarse_fields = getFieldsAtDepth(depth - 1);
+  // std::vector<ScalarField<2>> fine_fields = getFieldsAtDepth(depth);
+  // for (int i = 0; i < coarse.size(); i++) {
+  //   Node *parent = coarse[i];
+  //   double contribution = 0.0;
+  //   const std::array<Node *, 8> &children = parent->children.nodes;
+  //
+  //   ScalarField<2> parent_field = coarse_fields[parent->depth_id];
+  //   ScalarField<2> pdx =
+  //   parent_field.partialDerivative(0).partialDerivative(0); ScalarField<2>
+  //   pdy = parent_field.partialDerivative(1).partialDerivative(1);
+  //   ScalarField<2> pdz =
+  //   parent_field.partialDerivative(2).partialDerivative(2);
+  //
+  //   for (Node *child : children) {
+  //     if (child != nullptr) {
+  //       ScalarField<2> child_field = fine_fields[child->depth_id];
+  //       double inner = pdx.innerProduct(child_field) +
+  //                      pdy.innerProduct(child_field) +
+  //                      pdz.innerProduct(child_field);
+  //       contribution += fineCoeff[child->depth_id] * inner;
+  //       fineCoeff[child->depth_id] -=
+  //           coarseCoeff[parent->depth_id] * inner * factor;
+  //     }
+  //   }
+  //   coarseCoeff[i] -= contribution;
+  // }
 }
 
 // void HRefine::projectRefine(std::vector<double> &coarseCoeff,

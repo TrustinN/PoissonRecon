@@ -127,8 +127,6 @@ pOctree::pOctree(std::vector<std::array<double, 3>> points, int depth)
   // insert nodes
   // set refine to be true to have a blank insert
   this->Insert<true>(diff);
-
-  int field_node_count = getNodesAtDepth(_max_depth).size();
 };
 
 std::vector<Node *> pOctree::Neighbors(Node *node) {
