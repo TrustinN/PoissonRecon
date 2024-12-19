@@ -22,6 +22,16 @@ struct BenchMarkFixture : public benchmark::Fixture {
   }
 };
 
+BENCHMARK_DEFINE_F(BenchMarkFixture, Construct)(benchmark::State &state) {
+  constexpr int DIM = 3;
+  int num_points = 10000;
+
+  for (auto _ : state) {
+    Octree tree(random);
+    benchmark::DoNotOptimize(tree);
+  }
+}
+
 BENCHMARK_DEFINE_F(BenchMarkFixture, kNN)(benchmark::State &state) {
   constexpr int DIM = 3;
   int num_points = 10000;
@@ -47,7 +57,7 @@ BENCHMARK_DEFINE_F(BenchMarkFixture, kNNGroup)(benchmark::State &state) {
   }
 }
 
-BENCHMARK_DEFINE_F(BenchMarkFixture, kNNFull)(benchmark::State &state) {
+BENCHMARK_DEFINE_F(BenchMarkFixture, kNNGroupFull)(benchmark::State &state) {
 
   for (auto _ : state) {
     std::vector<std::vector<int>> res = tree.kNearestNeighbors(ball, 15);
@@ -82,9 +92,12 @@ BENCHMARK_DEFINE_F(BenchMarkFixture, NormalA)(benchmark::State &state) {
   }
 }
 
+BENCHMARK_REGISTER_F(BenchMarkFixture, Construct)
+    ->Unit(benchmark::kMillisecond);
 BENCHMARK_REGISTER_F(BenchMarkFixture, kNN)->Unit(benchmark::kMillisecond);
 BENCHMARK_REGISTER_F(BenchMarkFixture, kNNGroup)->Unit(benchmark::kMillisecond);
-BENCHMARK_REGISTER_F(BenchMarkFixture, kNNFull)->Unit(benchmark::kMillisecond);
+BENCHMARK_REGISTER_F(BenchMarkFixture, kNNGroupFull)
+    ->Unit(benchmark::kMillisecond);
 BENCHMARK_REGISTER_F(BenchMarkFixture, rGConstruct)
     ->Unit(benchmark::kMillisecond);
 BENCHMARK_REGISTER_F(BenchMarkFixture, EMSTConstruct)

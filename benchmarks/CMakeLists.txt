@@ -13,10 +13,21 @@ set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
 set(BENCHMARK_ENABLE_TESTING OFF)
 FetchContent_MakeAvailable(benchmark)
 
-set(DCMAKE_BUILD_TYPE Release)
-
 add_executable(
   benchmark_octree
   benchmark_octree.cpp ../src/Octree.cpp ../src/RiemannianGraph.cpp
   ../src/Emst.cpp ../src/Normal.cpp ${UTILS})
 target_link_libraries(benchmark_octree PRIVATE benchmark::benchmark pthread)
+
+add_executable(
+  benchmark_poisson
+  benchmark_poisson.cpp
+  ../src/Octree.cpp
+  ../src/RiemannianGraph.cpp
+  ../src/Emst.cpp
+  ../src/Normal.cpp
+  ../src/PoissonRecon.cpp
+  ../src/HRefine.cpp
+  ../src/pOctree.cpp
+  ${UTILS})
+target_link_libraries(benchmark_poisson PRIVATE benchmark::benchmark pthread)

@@ -38,6 +38,7 @@ HRefine::HRefine(pOctree tree,
       polys.push_back(ScalarField<2>(_basis, node->center, factor));
     }
   }
+  std::cout << "Constructed" << std::endl;
 }
 
 void HRefine::Refine(int depth) {
@@ -123,6 +124,10 @@ std::vector<double> HRefine::computeCoeff(std::vector<double> &start,
     double v_i = 0.0;
     for (int ii : v_field_nodes_active) {
       Node *v_field_node = v_field_nodes[ii];
+      if (v_field_node->depth_id != ii) {
+        std::cout << "ID, NodeID Mismatch" << std::endl;
+        std::cout << v_field_node->depth_id << " " << ii << std::endl;
+      }
       assert(v_field_node->depth_id == ii);
       ScalarField<2> v_field_basisf = v_field_fields[v_field_node->depth_id];
       std::array<double, 3> divergence{

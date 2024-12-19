@@ -12,6 +12,7 @@ public:
   // distance d
   std::vector<Node *> Neighbors(Node *node);
 };
+Node *pruneNodes(Node *start, const std::vector<std::array<double, 3>> &points);
 
 Node *seek_node(Node *node, const std::array<double, 3> &p);
 Node *seek_node(Node *start, const std::array<double, 3> &p, int depth);

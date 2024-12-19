@@ -1,9 +1,11 @@
 #include "PoissonRecon.hpp"
 #include "BSpline.hpp"
 #include "HRefine.hpp"
+#include "Metrics.hpp"
 #include "utils/io.hpp"
 #include "utils/linalg.hpp"
 #include <Eigen/SparseQR>
+#include <omp.h>
 
 constexpr static double TOL = 1e-6;
 
@@ -19,15 +21,14 @@ PoissonRecon::PoissonRecon(
 };
 
 void PoissonRecon::computeVectorField() {
-  std::vector<Node *> base_nodes = _octree.getNodesAtDepth(_depth);
+  std::vector<Node *> &base_nodes = _octree.getNodesAtDepth(_depth);
   int node_count = base_nodes.size();
-  _field_normals = std::vector<std::array<double, 3>>(node_count);
-  _field_centers = std::vector<std::array<double, 3>>(node_count);
+  _field_normals =
+      std::vector<std::array<double, 3>>(node_count, {0.0, 0.0, 0.0});
+  std::cout << node_count << std::endl;
 
   for (int i = 0; i < node_count; i++) {
-
     Node *cur_node = base_nodes[i];
-    _field_centers[i] = cur_node->center;
 
     std::vector<id_point> points = cur_node->children.points;
     for (id_point id_p : points) {
@@ -36,32 +37,49 @@ void PoissonRecon::computeVectorField() {
 
       // get interpolation node centers
       auto n_centers = nearest_8(cur_node, p);
-
-      // get interpolation nodes
-      std::vector<Node *> interp_nodes = {cur_node};
-      for (int j = 1; j < 8; j++) {
-        interp_nodes.push_back(seek_node(_octree.root(), n_centers[j]));
-      };
+      int prev_size = base_nodes.size();
+      std::vector<Node *> interp_nodes = _octree.Refine(n_centers);
+      int new_size = base_nodes.size();
+      for (int j = prev_size; j != new_size; j++) {
+        _field_normals.push_back({0.0, 0.0, 0.0});
+      }
 
       // trilinear interpolation
       for (Node *node : interp_nodes) {
         // compute distances to center
         std::array<double, 3> diff = p - node->center;
-        diff[0] = abs(diff[0]);
-        diff[1] = abs(diff[1]);
-        diff[2] = abs(diff[2]);
 
         // invert distance by center distance
         double dist = 2 * node->width;
-        double weight = ((dist - diff[0]) / dist) * ((dist - diff[1]) / dist) *
-                        ((dist - diff[2]) / dist);
+        double weight = ((dist - std::abs(diff[0])) / dist) *
+                        ((dist - std::abs(diff[1])) / dist) *
+                        ((dist - std::abs(diff[2])) / dist);
 
         int node_id = node->depth_id;
         _field_normals[node_id] =
-            _field_normals[node_id] + weight * _inward_normals[p_id];
+            _field_normals[node_id] + weight * _normals[p_id];
       }
     }
   };
+
+  _field_centers = std::vector<std::array<double, 3>>(base_nodes.size());
+  int zero_counter = 0;
+  std::array<double, 3> zero = {0.0, 0.0, 0.0};
+  for (int i = 0; i < base_nodes.size(); i++) {
+    _field_centers[i] = base_nodes[i]->center;
+    if (_field_normals[i] == zero) {
+      zero_counter++;
+    }
+  }
+  std::cout << _field_centers.size() << std::endl;
+  std::cout << zero_counter << std::endl;
+  int new_zero_counter = 0;
+  for (int i = node_count; i < base_nodes.size(); i++) {
+    if (_field_normals[i] == zero) {
+      new_zero_counter++;
+    }
+  }
+  std::cout << new_zero_counter << std::endl;
 }
 
 void PoissonRecon::run() {

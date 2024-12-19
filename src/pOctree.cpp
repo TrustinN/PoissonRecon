@@ -39,6 +39,25 @@ Node *seek_node(Node *start, const std::array<double, 3> &p, int depth) {
   return r_node;
 }
 
+Node *pruneNodes(Node *start,
+                 const std::vector<std::array<double, 3>> &points) {
+  assert(points.size() > 0);
+  Node *r_node = start;
+  while (true) {
+    if (r_node == nullptr) {
+      break;
+    }
+    int idx = node_index_map(r_node, points[0]);
+    for (int i = 1; i < points.size(); i++) {
+      if (node_index_map(r_node, points[i]) != idx) {
+        return r_node;
+      };
+    }
+    r_node = r_node->children.nodes[idx];
+  };
+  return r_node;
+}
+
 std::vector<std::array<double, 3>> nearest_8(Node *node,
                                              const std::array<double, 3> &p) {
 
@@ -98,36 +117,25 @@ std::vector<std::array<double, 3>> nearest_27(Node *node) {
 
 pOctree::pOctree(std::vector<std::array<double, 3>> points, int depth)
     : Octree(points, depth, depth) {
-  // Also need to refine tree to ensure every point has 8 neighboring nodes
-  // at smallest depth
+        // Also need to refine tree to ensure every point has 8 neighboring
+        // nodes
+        // at smallest depth
 
-  // defines the center of nodes we need to insert
-  std::set<std::array<double, 3>> ins_ctr_set;
-
-  // defines the centers we already have
-  std::set<std::array<double, 3>> curr_ctr_set;
-
-  for (Node *node : getNodesAtDepth(_max_depth)) {
-    curr_ctr_set.insert(node->center);
-
-    // compute 8 closest center nodes
-    for (id_point p : node->children.points) {
-      std::vector<std::array<double, 3>> n_centers =
-          nearest_8(node, std::get<1>(p));
-      ins_ctr_set.insert(n_centers.begin() + 1, n_centers.end());
-    };
-  }
-
-  // take set difference insert nodes
-  std::vector<std::array<double, 3>> diff;
-  std::set_difference(ins_ctr_set.begin(), ins_ctr_set.end(),
-                      curr_ctr_set.begin(), curr_ctr_set.end(),
-                      std::inserter(diff, diff.begin()));
-
-  // insert nodes
-  // set refine to be true to have a blank insert
-  this->Insert<true>(diff);
-};
+        // auto max_depth_nodes = getNodesAtDepth(_max_depth);
+        // std::vector<std::array<double, 3>> refinement_centers;
+        // refinement_centers.reserve(2 * points.size());
+        // for (Node *node : max_depth_nodes) {
+        //   // compute 8 closest center nodes
+        //   for (id_point p : node->children.points) {
+        //     std::vector<std::array<double, 3>> n_centers =
+        //         nearest_8(node, std::get<1>(p));
+        //     for (int i = 0; i < 8; i++) {
+        //       refinement_centers.push_back(n_centers[i]);
+        //     }
+        //   };
+        // }
+        // this->Insert<true>(refinement_centers);
+      };
 
 std::vector<Node *> pOctree::Neighbors(Node *node) {
   std::vector<std::array<double, 3>> neighbor_c = nearest_27(node);

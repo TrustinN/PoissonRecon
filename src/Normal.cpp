@@ -15,9 +15,7 @@ std::array<double, 3>
 get_normal(const std::vector<std::array<double, 3>> &vertices) {
   std::array<double, 3> centroid = {0, 0, 0};
   for (const auto &v : vertices) {
-    centroid[0] += v[0];
-    centroid[1] += v[1];
-    centroid[2] += v[2];
+    centroid += v;
   };
 
   for (auto &val : centroid) {
@@ -33,17 +31,13 @@ get_normal(const std::vector<std::array<double, 3>> &vertices) {
   Eigen::BDCSVD<Eigen::MatrixXd> svd(mat, Eigen::ComputeThinV);
   Eigen::Vector3d eig_vec = svd.matrixV().col(2);
 
-  std::array<double, 3> normal;
-  std::copy(eig_vec.data(), eig_vec.data() + 3, normal.begin());
-
-  return normal;
+  return {eig_vec(0), eig_vec(1), eig_vec(2)};
 };
 
-void align_normals(const std::array<double, 3> &n1, std::array<double, 3> &n2) {
+inline void align_normals(const std::array<double, 3> &n1,
+                          std::array<double, 3> &n2) {
   if (dot(n1, n2) < 0) {
-    n2[0] *= -1;
-    n2[1] *= -1;
-    n2[2] *= -1;
+    n2 *= -1;
   };
 };
 
@@ -85,21 +79,25 @@ void orient_normals(std::vector<std::array<double, 3>> &normals,
 
 NormalApproximations::NormalApproximations(
     std::vector<std::array<double, 3>> vertices) {
+  int num_vertices = vertices.size();
   _vertices = vertices;
+  _normals = std::vector<std::array<double, 3>>(num_vertices);
+  _inward_normals = std::vector<std::array<double, 3>>(num_vertices);
 
   Octree octree(vertices);
   RiemannianGraph rg = RiemannianGraph(vertices, octree, 15);
   std::vector<std::set<int>> rg_adj_list = rg.adj_list();
 
   // Get the tangent planes
-  for (int i = 0; i < vertices.size(); i++) {
+#pragma omp parallel for
+  for (int i = 0; i < num_vertices; i++) {
     std::set<int> &ns = rg_adj_list[i];
     std::vector<std::array<double, 3>> np;
     for (int n : ns) {
       np.push_back(vertices[n]);
     };
 
-    _normals.push_back(get_normal(np));
+    _normals[i] = (get_normal(np));
   };
 
   // Get the emst
@@ -110,7 +108,8 @@ NormalApproximations::NormalApproximations(
       get_mst<std::array<double, 3>>(_normals, _adj_list, offset);
 
   orient_normals(_normals, vertices, _traversal_order);
+#pragma omp parallel for
   for (int i = 0; i < _normals.size(); i++) {
-    _inward_normals.push_back(_normals[i] * -1);
+    _inward_normals[i] = _normals[i] * -1;
   }
 }

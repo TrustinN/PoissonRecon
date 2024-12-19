@@ -57,6 +57,17 @@ std::vector<std::array<double, 3>> split_centers(Node *node) {
   return n_centers;
 };
 
+std::array<std::vector<std::array<double, 3>>, 8>
+partition_points(Node *node, const std::vector<std::array<double, 3>> &points) {
+  // set where each point goes
+  std::array<std::vector<std::array<double, 3>>, 8> point_partition;
+  for (const auto &p : points) {
+    int idx = node_index_map(node, p);
+    point_partition[idx].push_back(p);
+  };
+  return point_partition;
+};
+
 std::array<std::vector<id_point>, 8>
 partition_points(Node *node, const std::vector<id_point> &points) {
   // set where each point goes
@@ -194,6 +205,7 @@ Octree::Octree(std::vector<std::array<double, 3>> points, int max_depth,
 
   // expand the bounds by 4 * smallest node width
   double pad = (1.3 * width) / std::pow(2, max_depth - 3);
+
   this->_root = Octree::build(id_points, center, width / 2 + pad, 0);
 };
 
@@ -210,14 +222,14 @@ struct pqData {
   union data {
     Node *node;
     std::array<double, 3> pt;
-    data(Node *node) : node(node){};
-    data(const std::array<double, 3> pt) : pt(pt){};
-    ~data(){};
+    data(Node *node) : node(node) {};
+    data(const std::array<double, 3> pt) : pt(pt) {};
+    ~data() {};
   } data;
 
-  pqData(double p, Node *node) : priority(p), data(node), is_point(false){};
+  pqData(double p, Node *node) : priority(p), data(node), is_point(false) {};
   pqData(double p, const std::array<double, 3> pt, int id)
-      : priority(p), data(pt), is_point(true), id(id){};
+      : priority(p), data(pt), is_point(true), id(id) {};
 
   friend bool operator<(const pqData &lhs, const pqData &rhs) {
     return lhs.priority < rhs.priority;
@@ -229,18 +241,26 @@ struct pqData {
 };
 
 std::vector<int> Octree::kNearestNeighbors(const std::array<double, 3> &query,
-                                           int k) const {
+                                           int k, const Metric &metric) const {
   std::vector<int> ret;
 
   std::priority_queue<pqData, std::vector<pqData>, std::greater<pqData>> pq;
   pq.push(pqData(0, this->_root));
 
+  if (k <= 0) {
+    k = std::numeric_limits<double>::infinity();
+  }
+
   while (ret.size() < k && !pq.empty()) {
+
     pqData item = pq.top();
     pq.pop();
 
     if (item.is_point) {
       // pq item is a point, we add id as a nearest neighbor
+      if (!metric(query, item.getPoint())) {
+        return ret;
+      }
       ret.push_back(item.id);
 
     } else {
@@ -272,8 +292,8 @@ std::vector<int> Octree::kNearestNeighbors(const std::array<double, 3> &query,
 };
 
 std::vector<std::vector<int>>
-Octree ::kNearestNeighbors(const std::vector<std::array<double, 3>> &queries,
-                           int k) const {
+Octree::kNearestNeighbors(const std::vector<std::array<double, 3>> &queries,
+                          int k) const {
   int num_queries = queries.size();
   std::vector<std::vector<int>> res(num_queries);
 #pragma omp parallel for
@@ -369,7 +389,7 @@ struct pqData2 {
   double priority;
   Node *node;
 
-  pqData2(double p, Node *node) : priority(p), node(node){};
+  pqData2(double p, Node *node) : priority(p), node(node) {};
 
   friend bool operator<(const pqData2 &lhs, const pqData2 &rhs) {
     return lhs.priority < rhs.priority;
@@ -409,7 +429,6 @@ std::vector<int> Octree::RadiusSearch(const std::array<double, 3> &center,
 
           double dist =
               std::max(diff[0] - w, std::max(diff[1] - w, diff[2] - w));
-          // double dist = distance(center, child);
           if (dist <= r) {
             min_pq.push(pqData2(dist, child));
           }
@@ -418,6 +437,61 @@ std::vector<int> Octree::RadiusSearch(const std::array<double, 3> &center,
     }
   }
   return found_ids;
+};
+
+void Octree::Refine(Node *node,
+                    const std::vector<std::array<double, 3>> &points,
+                    std::vector<Node *> &refinement) {
+  if (node->depth_id < 0) {
+    this->register_node(node);
+  }
+
+  if (points.size() == 0) {
+    return;
+  }
+
+  if (node->depth == _max_depth) {
+    refinement.push_back(node);
+    return;
+  }
+
+  if (!node->is_leaf || node->depth < _min_depth) {
+    bool is_leaf = node->is_leaf;
+    if (is_leaf) {
+      node->subdivide();
+      node->is_leaf = false;
+    }
+
+    // Figure out which points go in which subdivision
+    auto point_partition = partition_points(node, points);
+    std::array<Node *, 8> &children = node->children.nodes;
+    std::vector<std::array<double, 3>> n_centers = split_centers(node);
+
+    for (int i = 0; i < 8; i++) {
+      if (node->depth == _max_depth - 1 && point_partition[i].size() == 0 &&
+          is_leaf) {
+        // is child node at max depth
+        if (children[i]->children.points.size() == 0) {
+          children[i] = nullptr;
+        }
+        continue;
+      }
+      if (children[i] == nullptr) {
+        children[i] = new Node({}, n_centers[i], node->width / 2.0, true,
+                               node->depth + 1);
+      }
+      Refine(children[i], point_partition[i], refinement);
+    }
+  }
+}
+
+std::vector<Node *>
+Octree::Refine(const std::vector<std::array<double, 3>> &points) {
+  std::vector<Node *> refinement;
+
+  // Assumes that we do not need to expand Octree bounds
+  Refine(_root, points, refinement);
+  return refinement;
 };
 
 std::ostream &operator<<(std::ostream &ofs, const id_point &a) {

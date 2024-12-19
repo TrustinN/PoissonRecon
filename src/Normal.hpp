@@ -30,6 +30,7 @@ private:
   std::vector<std::set<int>> _adj_list;
 
 public:
+  NormalApproximations() {};
   NormalApproximations(std::vector<std::array<double, 3>> vertices);
 
   std::vector<std::array<double, 3>> vertices() const { return _vertices; };
