@@ -26,6 +26,7 @@ BENCHMARK_DEFINE_F(BenchMarkFixture, NormalSplatting)(benchmark::State &state) {
 
   for (auto _ : state) {
     PoissonRecon poisson(na.vertices(), na.normals(), na.inward_normals());
+    poisson.run();
     benchmark::DoNotOptimize(poisson);
   }
 }

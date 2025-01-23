@@ -54,9 +54,9 @@ int main(int argc, char **argv) {
   std::string obj = argv[1];
   std::vector<std::array<double, 3>> vertices;
   if (obj == "ball") {
-    vertices = sample_sphere(100000, 3);
+    vertices = sample_sphere(1000000, 3);
   } else if (obj == "box") {
-    vertices = sample_box(100000, 1.5, 2, 1);
+    vertices = sample_box(1000000, 1.5, 2, 1);
   }
 
   NormalApproximations na(vertices);

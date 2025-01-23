@@ -102,6 +102,7 @@ public:
   void Delete(std::array<double, 3> p);
   std::vector<int> RadiusSearch(const std::array<double, 3> &center, double r,
                                 int depth);
+  std::vector<Node *> Neighbors(Node *node);
 
   std::vector<Node *> &getNodesAtDepth(int d) {
     assert(0 <= d && d <= _nodes.size());
@@ -130,6 +131,11 @@ std::array<std::vector<id_point>, 8>
 partition_points(Node *node, const std::vector<id_point> &points);
 std::array<std::vector<std::array<double, 3>>, 8>
 partition_points(Node *node, const std::vector<std::array<double, 3>> &points);
+Node *seek_node(Node *node, const std::array<double, 3> &p);
+Node *seek_node(Node *start, const std::array<double, 3> &p, int depth);
+std::vector<std::array<double, 3>> nearest_8(Node *node,
+                                             const std::array<double, 3> &p);
+std::vector<std::array<double, 3>> nearest_27(Node *node);
 
 // -------------------------------------------------------------------------------------------------//
 // Template Implementations

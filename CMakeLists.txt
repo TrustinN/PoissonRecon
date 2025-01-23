@@ -37,5 +37,5 @@ find_package(VTK REQUIRED)
 find_package(GSL REQUIRED)
 
 add_subdirectory(src)
-# add_subdirectory(tests)
+add_subdirectory(tests)
 add_subdirectory(benchmarks)

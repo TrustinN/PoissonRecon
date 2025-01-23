@@ -2,8 +2,8 @@
 #define POISSON_RECON_HPP
 
 #include "HRefine.hpp"
+#include "Octree.hpp"
 #include "PPolynomialXd.hpp"
-#include "pOctree.hpp"
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 #include <array>
@@ -19,7 +19,7 @@ public:
   void run();
   void write();
 
-  pOctree octree() { return _octree; };
+  Octree octree() { return _octree; };
   auto field_centers() const { return _field_centers; };
   auto field_normals() const { return _field_normals; };
   void computeVectorField();
@@ -36,7 +36,7 @@ private:
   std::vector<std::array<double, 3>> _field_normals;
   std::vector<std::array<double, 3>> _field_centers;
 
-  pOctree _octree;
+  Octree _octree;
 
   std::vector<std::vector<double>> _coeff;
   std::vector<std::vector<ScalarField<2>>> _scalar_fields;

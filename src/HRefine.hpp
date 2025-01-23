@@ -2,19 +2,19 @@
 #define HREFINE_HPP
 
 #include "BSpline.hpp"
+#include "Octree.hpp"
 #include "PPolynomial.hpp"
-#include "pOctree.hpp"
 #include <vector>
 
 struct HRefine {
-  pOctree _tree;
+  Octree _tree;
   int _max_depth;
   PPolynomial<2> _basis;
   std::vector<std::vector<ScalarField<2>>> _basis_functions;
   std::vector<std::array<double, 3>> _vector_field_normals;
   std::vector<std::vector<double>> _coeff;
 
-  HRefine(pOctree tree, const std::vector<std::array<double, 3>> &normals,
+  HRefine(Octree tree, const std::vector<std::array<double, 3>> &normals,
           const PPolynomial<2> &basis);
 
   void setCoeffAtDepth(std::vector<double> dCoeff, int depth) {

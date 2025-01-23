@@ -23,8 +23,7 @@ computeSymmetricError(const Eigen::SparseMatrix<double, Eigen::ColMajor> &L) {
   return frobeniusNorm;
 }
 
-HRefine::HRefine(pOctree tree,
-                 const std::vector<std::array<double, 3>> &normals,
+HRefine::HRefine(Octree tree, const std::vector<std::array<double, 3>> &normals,
                  const PPolynomial<2> &basis)
     : _tree(tree), _basis(basis), _vector_field_normals(normals) {
   _max_depth = tree.max_depth();

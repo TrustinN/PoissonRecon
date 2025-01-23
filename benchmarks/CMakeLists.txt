@@ -28,6 +28,5 @@ add_executable(
   ../src/Normal.cpp
   ../src/PoissonRecon.cpp
   ../src/HRefine.cpp
-  ../src/pOctree.cpp
   ${UTILS})
 target_link_libraries(benchmark_poisson PRIVATE benchmark::benchmark pthread)

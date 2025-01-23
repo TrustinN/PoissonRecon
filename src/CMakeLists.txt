@@ -7,15 +7,8 @@ file(GLOB NORMAL ${CMAKE_CURRENT_SOURCE_DIR}/Normal.cpp
      ${CMAKE_CURRENT_SOURCE_DIR}/RiemannianGraph.cpp)
 
 # add_executable(test test.cpp ${UTILS})
-add_executable(
-  main
-  main.cpp
-  PoissonRecon.cpp
-  ${NORMAL}
-  Octree.cpp
-  pOctree.cpp
-  HRefine.cpp
-  ${UTILS})
+add_executable(main main.cpp PoissonRecon.cpp ${NORMAL} Octree.cpp HRefine.cpp
+                    ${UTILS})
 
 target_link_libraries(main PUBLIC ${GSL_LIBRARIES})
 add_executable(plotIndicator plotIndicator.cpp ${UTILS} ${PLOT})
@@ -27,15 +20,8 @@ target_link_libraries(plotIndicator PRIVATE ${VTK_LIBRARIES})
 add_executable(plotDebug Debug.cpp ${UTILS} ${PLOT})
 target_link_libraries(plotDebug PRIVATE ${VTK_LIBRARIES})
 
-add_executable(
-  plot_poisson
-  plotPoisson.cpp
-  PoissonRecon.cpp
-  ${NORMAL}
-  Octree.cpp
-  pOctree.cpp
-  ${UTILS}
-  ${PLOT})
+add_executable(plot_poisson plotPoisson.cpp PoissonRecon.cpp ${NORMAL}
+                            Octree.cpp ${UTILS} ${PLOT})
 target_link_libraries(plot_poisson PRIVATE ${VTK_LIBRARIES} ${GSL_LIBRARIES})
 #
 # add_executable(plot plot.cpp Octree.cpp Normal.cpp RiemannianGraph.cpp

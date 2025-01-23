@@ -16,7 +16,7 @@ PoissonRecon::PoissonRecon(
     : _points(points), _normals(normals), _inward_normals(inward_normals),
       _depth(depth) {
 
-  _octree = pOctree(points, depth);
+  _octree = Octree(points, depth, depth);
   computeVectorField();
 };
 
